@@ -15,27 +15,7 @@
       <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
 
-    <!-- 样式文件 -->
-    <link rel="stylesheet" href="<?php echo base_url('static/umeditor/themes/default/css/umeditor.css');?>">
-    <!-- 引用jquery -->
-    <script src="<?php echo base_url('static/js/jquery.min.js');?>"></script>
-    <!-- 配置文件 -->
-    <script type="text/javascript" src="<?php echo base_url('static/umeditor/umeditor.config.js');?>"></script>
-    <!-- 编辑器源码文件 -->
-    <script type="text/javascript" src="<?php echo base_url('static/umeditor/umeditor.min.js');?>"></script>
-    <!-- 语言包文件 -->
-    <script type="text/javascript" src="<?php echo base_url('static/umeditor/lang/zh-cn/zh-cn.js');?>"></script>
-    <!-- 实例化编辑器代码 -->
-    <script type="text/javascript">
-    $(function(){
-        window.um = UM.getEditor('content', {
-            /* 传入配置参数,可配参数列表看umeditor.config.js */
-            //toolbar: ['undo redo | bold italic underline']
-        });
-    });
-    </script>
-
-    <title><?php echo $site_title; ?> | <?php echo 'Let\'sBBS';//$site_name; ?></title>
+    <title>管理中心 | <?php echo 'Let\'sBBS';//$site_name; ?></title>
 </head>
 <body>
     <nav class="navbar navbar-default" role="navigation">

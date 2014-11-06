@@ -5,8 +5,12 @@ class Base_Controller extends CI_Controller {
     public function __construct()
     {
         parent::__construct();
-
         $this->output->enable_profiler(TRUE);
+
+        //全局传递网站设置数据
+        $this->load->model('site_m');
+        $site_settings = $this->site_m->get_site_settings();
+        $this->load->vars($site_settings);
     }
 }
 // END Base_Controller class
@@ -16,6 +20,14 @@ class Front_Controller extends Base_Controller {
     public function __construct()
     {
         parent::__construct();
+
+        //更新提醒数量
+        if ($this->session->userdata('uid')) {
+            $this->db->where('uid', $this->session->userdata('uid'));
+            $query = $this->db->get('letsbbs_user');
+            $user_info = $query->row_array();
+            $this->session->set_userdata('notification', $user_info['notice']);
+        }
     }
 }
 // END Front_Controller class
