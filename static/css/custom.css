@@ -1,0 +1,58 @@
+body {
+    background: url(../img/grid.png);
+}
+
+@media (min-width: 992px) {
+    .container {
+        max-width: 970px;
+    }
+}
+
+.footer{
+    padding: 15px 0;
+    background-color: #f8f8f8;
+    border-top: 1px solid #e7e7e7;
+}
+
+.alert-avatar{
+    margin-top: 20px;
+}
+
+.topic-list-heading {
+    margin: 0 0 10px;
+}
+
+.topic-list-heading a{
+    font-size: 16px;
+    color: #444;
+}
+
+.smallhr{
+    margin: 5px 0;
+}
+
+.topic-comment a{
+    color: #fff;
+}
+
+.panel-default .topic-detail-heading{
+    background-color: #fff;
+}
+
+.topic-detail-heading h1{
+    font-size: 24px;
+    margin: 15px 0;
+}
+
+.topic-detail-heading img{
+    width: 64px;
+}
+
+.panel-body img{
+    max-width: 100%;
+    height: auto;
+}
+
+.nodes{
+    margin: 3px;
+}
