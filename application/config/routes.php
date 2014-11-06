@@ -56,5 +56,7 @@ $route['member/([0-9a-zA-Z]+)'] = 'member/index/$1';
 $route['member/([0-9a-zA-Z]+)/topic/(:num)'] = 'member/topic/$1/$2';
 $route['member/([0-9a-zA-Z]+)/comment/(:num)'] = 'member/comment/$1/$2';
 
+$route['notification/(:num)'] = 'notification/index/$1';
+
 /* End of file routes.php */
 /* Location: ./application/config/routes.php */

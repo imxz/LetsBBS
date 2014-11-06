@@ -67,6 +67,7 @@
                                     </blockquote>
                                 </div>
                             </li>
+                            <hr class="smallhr">
                             <?php endforeach; ?>
                         </ul>
                         <ul class="pager"><?php echo $comments_pagination;?></ul>
