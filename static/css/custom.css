@@ -56,3 +56,8 @@ body {
 .nodes{
     margin: 3px;
 }
+
+blockquote p {
+    font-size: 14px;
+    font-weight: normal;
+}

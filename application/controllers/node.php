@@ -34,7 +34,7 @@ class Node extends Front_Controller {
         if ($page>1) {
             $data['site_title'] .= ' '.$page.'/'.$data['num_pages'];
         }
-        $this->load->view('node_list', $data);
+        $this->load->view('node_topic_recent', $data);
     }
 }
 

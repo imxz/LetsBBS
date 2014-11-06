@@ -49,5 +49,12 @@ $route['settings'] = 'user/settings';
 $route['recent/(:num)'] = 'topic/recent/$1';
 $route['topic/(:num)'] = 'topic/detail/$1';
 
+$route['node/(:num)'] = 'node/recent/$1';
+$route['node/(:num)/(:num)'] = 'node/recent/$1/$2';
+
+$route['member/([0-9a-zA-Z]+)'] = 'member/index/$1';
+$route['member/([0-9a-zA-Z]+)/topic/(:num)'] = 'member/topic/$1/$2';
+$route['member/([0-9a-zA-Z]+)/comment/(:num)'] = 'member/comment/$1/$2';
+
 /* End of file routes.php */
 /* Location: ./application/config/routes.php */
