@@ -18,8 +18,8 @@ class Member extends Front_Controller {
     {
         $user['user']=$this->user_m->get_user_byname($username);
         $where = array('a.uid' => $user['user']['uid']);
-        $topics=$this->topic_m->get_topic_recent($where, 1 ,5 ,'member/'.$username.'/topic', 4);
-        $comments=$this->comment_m->get_comments_recent($where, 1 ,5 ,'member/'.$username.'/comment', 4);
+        $topics=$this->topic_m->get_topic_recent($where, 1 ,15 ,'member/'.$username.'/topic', 4);
+        $comments=$this->comment_m->get_comments_recent($where, 1 ,15 ,'member/'.$username.'/comment', 4);
         $data=array_merge($user, $topics, $comments);
 
         $data['site_title'] = $username;
@@ -35,7 +35,7 @@ class Member extends Front_Controller {
     {
         $user['user']=$this->user_m->get_user_byname($username);
         $where = array('a.uid' => $user['user']['uid']);
-        $topics=$this->topic_m->get_topic_recent($where, $page ,5 ,'member/'.$username.'/topic', 4);
+        $topics=$this->topic_m->get_topic_recent($where, $page ,15 ,'member/'.$username.'/topic', 4);
         $data=array_merge($user, $topics);
 
         $data['site_title'] = $username . '创建的主题';
@@ -51,7 +51,7 @@ class Member extends Front_Controller {
     {
         $user['user']=$this->user_m->get_user_byname($username);
         $where = array('a.uid' => $user['user']['uid']);
-        $comments=$this->comment_m->get_comments_recent($where, $page ,5 ,'member/'.$username.'/comment', 4);
+        $comments=$this->comment_m->get_comments_recent($where, $page ,15 ,'member/'.$username.'/comment', 4);
         $data=array_merge($user, $comments);
 
         $data['site_title'] = $username . '添加的回复';

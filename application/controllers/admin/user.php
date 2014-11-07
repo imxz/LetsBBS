@@ -18,7 +18,7 @@ class User extends Admin_Controller {
      */
     public function page($page = 1)
     {
-        $data=$this->user_m->get_users_list(NULL, $page, 2, $url='admin/user/page', 4);
+        $data=$this->user_m->get_users_list(NULL, $page, 20, $url='admin/user/page', 4);
         $this->load->view('admin/user_list', $data);
     }
 

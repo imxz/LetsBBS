@@ -19,7 +19,7 @@ class Topic extends Admin_Controller {
      */
     public function page($page = 1)
     {
-        $data=$this->topic_m->get_topic_recent(NULL, $page, 2, 'admin/topic/page', 4);
+        $data=$this->topic_m->get_topic_recent(NULL, $page, 20, 'admin/topic/page', 4);
         $this->load->view('admin/topic_list', $data);
     }
 

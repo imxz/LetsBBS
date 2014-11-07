@@ -1,4 +1,4 @@
-<?php include 'common/header.php';?>
+<?php include 'common/header_home.php';?>
 
     <div class="container">
         <div class="row">
