@@ -54,7 +54,7 @@ class Topic_M extends CI_Model {
      * @param   $pagesize 每页条数
      * @return            关联数组
      */
-    public function get_topic_list($where, $page, $pagesize)
+    public function get_topic_list($where, $page, $pagesize, $order)
     {
         $this->db->select('a.*, b.username, b.avatar, c.username as rname, d.nname');
         $this->db->from('letsbbs_topic a');
@@ -65,7 +65,7 @@ class Topic_M extends CI_Model {
         if ($where!=NULL) {
             $this->db->where($where);
         }
-        $this->db->order_by('replytime','desc');
+        $this->db->order_by($order,'desc');
         $this->db->limit($pagesize, ($page - 1) * $pagesize);
         $query = $this->db->get();
 
@@ -94,7 +94,7 @@ class Topic_M extends CI_Model {
      * @param    $uri_segment 分页数字在哪个段
      * @return         数组 分页和列表数据
      */
-    public function get_topic_recent($where, $page = 1, $pagesize=15, $url='', $uri_segment=2)
+    public function get_topic_recent($where, $page = 1, $pagesize=15, $url='', $uri_segment=2, $order='replytime')
     {
         $this->load->library('pagination');
         $config['base_url'] = base_url($url);
@@ -116,7 +116,7 @@ class Topic_M extends CI_Model {
         $this->pagination->initialize($config);
 
         $data['pagination']=$this->pagination->create_links();
-        $data['topics']=$this->get_topic_list($where, $page, $pagesize);
+        $data['topics']=$this->get_topic_list($where, $page, $pagesize, $order);
         $data['num_pages'] = ceil($config['total_rows'] / $pagesize);
         return $data;
     }
