@@ -5,7 +5,7 @@ class Base_Controller extends CI_Controller {
     public function __construct()
     {
         parent::__construct();
-        $this->output->enable_profiler(TRUE);
+        //$this->output->enable_profiler(TRUE);
 
         //全局传递网站设置数据
         $this->load->model('site_m');
@@ -37,6 +37,10 @@ class Admin_Controller extends Base_Controller {
     public function __construct()
     {
         parent::__construct();
+
+        //admin访问控制
+        $this->load->helper('auth');
+        is_admin_exit();
     }
 }
 // END Admin_Controller class

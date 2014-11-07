@@ -15,7 +15,7 @@
       <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
 
-    <title>管理中心 | <?php echo 'Let\'sBBS';//$site_name; ?></title>
+    <title>管理中心 | <?php echo $site_name;?></title>
 </head>
 <body>
     <nav class="navbar navbar-default" role="navigation">
@@ -28,7 +28,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="<?php echo base_url();?>">Let'sBBS</a>
+                <a class="navbar-brand" href="<?php echo base_url();?>"><?php echo $site_name;?></a>
             </div>
 
             <!-- Collect the nav links, forms, and other content for toggling -->

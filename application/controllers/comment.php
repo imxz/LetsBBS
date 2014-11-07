@@ -9,6 +9,9 @@ class Comment extends Front_Controller {
         $this->load->model('topic_m');
         $this->load->model('notification_m');
         $this->load->model('user_m');
+
+        $this->load->helper('auth');
+        is_login_exit();
     }
 
     /**
@@ -73,7 +76,7 @@ class Comment extends Front_Controller {
         }
 
         //跳转到原帖子
-        redirect('topic/'.$this->input->post('tid').'#Reply');
+        redirect('topic/'.$this->input->post('tid').'#Reply'.$updatedata['comment']);
     }
 }
 

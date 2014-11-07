@@ -6,14 +6,14 @@
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <ul class="nav nav-pills">
-                            <li><a href="<?php echo base_url('user/profile'); ?>">个人资料</a></li>
-                            <li><a href="<?php echo base_url('user/avatar'); ?>">上传头像</a></li>
-                            <li class="active"><a href="<?php echo base_url('user/password'); ?>">更改密码</a></li>
+                            <li><a href="<?php echo base_url('settings/profile'); ?>">个人资料</a></li>
+                            <li><a href="<?php echo base_url('settings/avatar'); ?>">上传头像</a></li>
+                            <li class="active"><a href="<?php echo base_url('settings/password'); ?>">更改密码</a></li>
                         </ul>
                     </div>
                     <div class="panel-body">
                         <?php echo validation_errors('<div class="alert alert-danger">', '</div>'); ?>
-                        <?php echo form_open('user/password', array('class' => 'form-horizontal', 'role' => 'form'));?>
+                        <?php echo form_open('settings/password', array('class' => 'form-horizontal', 'role' => 'form'));?>
                             <div class="form-group">
                                 <label for="password" class="col-sm-2 control-label">当前密码</label>
                                 <div class="col-sm-10">

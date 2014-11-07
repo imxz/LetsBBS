@@ -5,7 +5,7 @@
             <div class="col-md-8">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h3 class="panel-title">Panel title</h3>
+                        <h3 class="panel-title"><?php echo $site_welcome_msg;?></h3>
                     </div>
                     <div class="panel-body">
                         <ul class="media-list">

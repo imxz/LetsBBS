@@ -16,7 +16,7 @@ class Notification extends Front_Controller {
     public function index($page=1)
     {
         $where = array('a.tuid' => $this->session->userdata('uid'));
-        $data=$this->notification_m->get_notifications_recent($where, $page, 1, 'notification', 2);
+        $data=$this->notification_m->get_notifications_recent($where, $page, 15, 'notification', 2);
 
         $data['site_title'] = '通知中心';
         $this->load->view('notification_list', $data);

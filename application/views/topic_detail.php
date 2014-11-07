@@ -29,7 +29,7 @@
                     <div class="panel-body">
                         <ul class="media-list">
                             <?php $i=1;foreach ($comments as $comment) : ?>
-                            <li class="media">
+                            <li class="media" id="<?php echo 'Reply'.$i;?>">
                                 <a href="#Reply" onclick="addReply('&lt;a href=&quot;<?php echo base_url('member/'.$comment['username']); ?>&quot;&gt;<?php echo $comment['username']; ?>&lt;/a&gt;')" class="pull-right text-muted"><?php echo '#' . $i++; ?> <span class="glyphicon glyphicon-share-alt"></span></a>
                                 <a class="media-left" href="<?php echo base_url('member/'.$comment['username']);?>">
                                     <img class="img-rounded" src="<?php echo base_url($comment['avatar'].'normal.png');?>" alt="<?php echo $comment['username'].'_avatar';?>">

@@ -6,14 +6,14 @@
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <ul class="nav nav-pills">
-                            <li><a href="<?php echo base_url('user/profile'); ?>">个人资料</a></li>
-                            <li class="active"><a href="<?php echo base_url('user/avatar'); ?>">上传头像</a></li>
-                            <li><a href="<?php echo base_url('user/password'); ?>">更改密码</a></li>
+                            <li><a href="<?php echo base_url('settings/profile'); ?>">个人资料</a></li>
+                            <li class="active"><a href="<?php echo base_url('settings/avatar'); ?>">上传头像</a></li>
+                            <li><a href="<?php echo base_url('settings/password'); ?>">更改密码</a></li>
                         </ul>
                     </div>
                     <div class="panel-body">
                         <?php if ($error!='') echo '<div class="alert alert-danger">'.$error.'</div>'; ?>
-                        <?php echo form_open_multipart('user/avatar_do_upload', array('class' => 'form-horizontal', 'role' => 'form'));?>
+                        <?php echo form_open_multipart('settings/avatar_do_upload', array('class' => 'form-horizontal', 'role' => 'form'));?>
                             <div class="form-group">
                                 <label class="col-sm-2 control-label">当前头像</label>
                                 <div class="col-sm-10">

@@ -44,7 +44,6 @@ $route['404_override'] = '';
 $route['reg'] = 'user/reg';
 $route['logout'] = 'user/logout';
 $route['login'] = 'user/login';
-$route['settings'] = 'user/settings';
 
 $route['recent/(:num)'] = 'topic/recent/$1';
 $route['topic/(:num)'] = 'topic/detail/$1';
