@@ -27,6 +27,14 @@ body {
     color: #444;
 }
 
+.hot-topic a{
+    color: #444;
+}
+
+.hot-topic-title{
+    background: #f5f5f5;
+}
+
 .smallhr{
     margin: 5px 0;
 }
