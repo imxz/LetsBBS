@@ -30,7 +30,13 @@ class Node extends Front_Controller {
         $where = array('a.nid' => $nid);
         $data=$this->topic_m->get_topic_recent($where, $page, 20, 'node/'.$nid, 3);
 
-        $data['site_title'] = $data['topics'][0]['nname'];
+        $data['nid'] = $nid;
+        if ($data['topics']) {
+            $data['site_title'] = $data['topics'][0]['nname'];
+        } else {
+            $data['site_title'] = '暂无主题';
+        }
+
         if ($page>1) {
             $data['site_title'] .= ' '.$page.'/'.$data['num_pages'];
         }
