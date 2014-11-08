@@ -49,6 +49,7 @@
                         <h3 class="panel-title">添加一条新回复</h3>
                     </div>
                     <div class="panel-body">
+                        <?php if ($this->session->userdata('username')) : ?>
                         <?php echo validation_errors('<div class="alert alert-danger">', '</div>'); ?>
                         <?php echo form_open('comment/add', array('role' => 'form', 'id'=>'comment-add'));?>
                             <script id="content" name="content" type="text/plain" style="width:100%;height:200px;"><?php echo htmlspecialchars_decode(set_value('content')); ?></script>
@@ -75,6 +76,11 @@
                             </div>
                             <button type="submit" class="btn btn-default">提交</button>
                         </form>
+                        <?php else : ?>
+                            <div class="well text-center">
+                                <a href="<?php echo base_url('reg');?>">注册</a> 参与讨论 or <a href="<?php echo base_url('login');?>">登录</a>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div><!-- /.panel add comment -->
             </div><!-- /.col-md-8 -->
