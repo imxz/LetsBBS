@@ -33,15 +33,14 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <script id="content" name="content" type="text/plain" style="width:100%;height:300px;"><?php echo htmlspecialchars_decode(set_value('content')); ?></script>
-                                <!-- 配置文件 -->
-                                <script type="text/javascript" src="<?php echo base_url('static/ueditor/ueditor.config.js');?>"></script>
-                                <!-- 编辑器源码文件 -->
-                                <script type="text/javascript" src="<?php echo base_url('static/ueditor/ueditor.all.min.js');?>"></script>
-                                <!-- 实例化编辑器 -->
-                                <script type="text/javascript">
-                                var ue = UE.getEditor('content');
+                                <script charset="utf-8" src="<?php echo base_url('static/editor/kindeditor.js');?>"></script>
+                                <script charset="utf-8" src="<?php echo base_url('static/editor/lang/zh_CN.js');?>"></script>
+                                <script>
+                                    KindEditor.ready(function(K) {
+                                            window.editor = K.create('#content');
+                                    });
                                 </script>
+                                <textarea id="content" name="content" style="width:100%;height:200px;visibility:hidden;"></textarea>
                             </div>
                             <button type="submit" class="btn btn-default">提交</button>
                         </form>
