@@ -52,23 +52,30 @@
                         <?php if ($this->session->userdata('username')) : ?>
                         <?php echo validation_errors('<div class="alert alert-danger">', '</div>'); ?>
                         <?php echo form_open('comment/add', array('role' => 'form', 'id'=>'comment-add'));?>
-                            <script id="content" name="content" type="text/plain" style="width:100%;height:200px;"><?php echo htmlspecialchars_decode(set_value('content')); ?></script>
-                            <!-- 配置文件 -->
-                            <script type="text/javascript" src="<?php echo base_url('static/ueditor/ueditor.config.js');?>"></script>
-                            <!-- 编辑器源码文件 -->
-                            <script type="text/javascript" src="<?php echo base_url('static/ueditor/ueditor.all.min.js');?>"></script>
-                            <!-- 实例化编辑器 -->
-                            <script type="text/javascript">
-                            var ue = UE.getEditor('content');
+                            <script src="<?php echo base_url('static/editor/kindeditor.js');?>"></script>
+                            <script src="<?php echo base_url('static/editor/lang/zh_CN.js');?>"></script>
+                            <script>
+                                KindEditor.ready(function(K) {
+                                    var options = {
+                                        autoHeightMode : true,
+                                        afterCreate : function() {
+                                            this.html('<p><br/></p>');
+                                            this.focus();
+                                            this.loadPlugin('autoheight');
+                                        },
+                                        items : [
+                                        'source', 'preview', '|', 'fontsize', 'bold', 'italic', 'underline',
+                                        'strikethrough', '|', 'justifyleft', 'justifycenter', 'justifyright', 'insertorderedlist',
+                                        'insertunorderedlist', '|', 'emoticons', 'image', 'flash', 'link']
+                                    };
+                                    window.editor = K.create('#content', options);
+                                });
 
-                            function addReply(username) {
-                                if (ue.hasContents()) {
-                                    ue.setContent('@'+username+'&nbsp;', true);
-                                } else{
-                                    ue.setContent('@'+username+'&nbsp;');
+                                function addReply(username) {
+                                    window.editor.insertHtml('@'+username+'&nbsp;');
                                 }
-                            }
                             </script>
+                            <textarea id="content" name="content" style="width:100%;height:200px;visibility:hidden;"><?php echo set_value('content');?></textarea>
                             <div class="form-group">
                                 <div class="col-sm-12">
                                     <input type="hidden" id="tid" name="tid" value="<?php echo $topic['tid']; ?>">

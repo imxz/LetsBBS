@@ -7,6 +7,9 @@ class Notification extends Front_Controller {
         parent::__construct();
         $this->load->model('notification_m');
         $this->load->model('user_m');
+
+        $this->load->helper('auth');
+        is_login_exit();
     }
 
     /**
