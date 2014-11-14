@@ -8,6 +8,12 @@
                         <h3 class="panel-title">主题管理</h3>
                     </div>
                     <div class="panel-body table-responsive">
+                        <?php echo form_open('admin/topic/search', array('class' => 'navbar-form navbar-left', 'role' => 'form'));?>
+                            <div class="form-group">
+                                <input type="text" class="form-control" id="title" name="title" placeholder="搜索标题" value="<?php echo $title; ?>">
+                            </div>
+                            <button type="submit" class="btn btn-default">提交</button>
+                        </form>
                         <table class="table">
                             <thead>
                               <tr>
