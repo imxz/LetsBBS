@@ -5,12 +5,12 @@ class Install extends CI_Controller {
     public function __construct()
     {
         parent::__construct();
-        if (is_file(FCPATH.'cache/install.lock')) {
+        if (is_file(FCPATH.'application/cache/install/install.lock')) {
             $string='
             <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
             <script>
             alert("安装程序已经锁定，如果重新安装请删除application/cache/install/install.lock文件");
-            top.location="'.base_url('install').'";
+            top.location="'.base_url().'";
             </script>
             ';
             exit($string);
@@ -230,6 +230,9 @@ class Install extends CI_Controller {
             $this->load->database();
             $this->load->model('user_m');
             $this->user_m->reg($admin);
+            $this->user_m->login($admin);
+
+            $this->load->view('install_done');
         }
     }
 
