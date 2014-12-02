@@ -48,10 +48,10 @@
 $active_group = 'default';
 $active_record = TRUE;
 
-$db['default']['hostname'] = 'localhost';
-$db['default']['username'] = 'letsbbs';
-$db['default']['password'] = 'letsbbs';
-$db['default']['database'] = 'letsbbs';
+$db['default']['hostname'] = 'dbhost';
+$db['default']['username'] = 'dbuser';
+$db['default']['password'] = 'dbpsw';
+$db['default']['database'] = 'dbname';
 $db['default']['dbdriver'] = 'mysql';
 $db['default']['dbprefix'] = '';
 $db['default']['pconnect'] = TRUE;
