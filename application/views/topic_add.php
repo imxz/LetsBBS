@@ -1,4 +1,4 @@
-<?php include 'common/header.php';?>
+<?php include 'common/header_editor.php';?>
 
     <div class="container">
         <div class="row">
@@ -33,26 +33,7 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <script src="<?php echo base_url('static/editor/kindeditor.js');?>"></script>
-                                <script src="<?php echo base_url('static/editor/lang/zh_CN.js');?>"></script>
-                                <script>
-                                    KindEditor.ready(function(K) {
-                                        var options = {
-                                            autoHeightMode : true,
-                                            afterCreate : function() {
-                                                this.html('<p><br/></p>');
-                                                this.focus();
-                                                this.loadPlugin('autoheight');
-                                            },
-                                            items : [
-                                            'source', 'preview', '|', 'fontsize', 'bold', 'italic', 'underline',
-                                            'strikethrough', '|', 'justifyleft', 'justifycenter', 'justifyright', 'insertorderedlist',
-                                            'insertunorderedlist', '|', 'emoticons', 'image', 'flash', 'link']
-                                        };
-                                        window.editor = K.create('#content', options);
-                                    });
-                                </script>
-                                <textarea id="content" name="content" style="width:100%;height:300px;visibility:hidden;"><?php echo set_value('content');?></textarea>
+                                <script id="content" name="content" type="text/plain" style="width:100%;height:300px;"><?php echo htmlspecialchars_decode(set_value('content'));?></script>
                             </div>
                             <button type="submit" class="btn btn-default">提交</button>
                         </form>
@@ -65,6 +46,6 @@
         </div><!-- /.row -->
     </div><!-- /.container -->
 
-<?php include 'common/footer.php';?>
+<?php include 'common/footer_editor.php';?>
 </body>
 </html>

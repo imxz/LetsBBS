@@ -1,4 +1,4 @@
-<?php include 'common/header.php';?>
+<?php include 'common/header_editor.php';?>
 
     <div class="container">
         <div class="row">
@@ -51,31 +51,24 @@
                     <div class="panel-body">
                         <?php if ($this->session->userdata('username')) : ?>
                         <?php echo validation_errors('<div class="alert alert-danger">', '</div>'); ?>
-                        <?php echo form_open('comment/add', array('role' => 'form', 'id'=>'comment-add'));?>
-                            <script src="<?php echo base_url('static/editor/kindeditor.js');?>"></script>
-                            <script src="<?php echo base_url('static/editor/lang/zh_CN.js');?>"></script>
+                        <?php echo form_open('comment/add', array('class' => 'form-horizontal', 'role' => 'form', 'onsubmit' => 'return validate_form(this)'));?>
                             <script>
-                                KindEditor.ready(function(K) {
-                                    var options = {
-                                        autoHeightMode : true,
-                                        afterCreate : function() {
-                                            this.html('<p><br/></p>');
-                                            this.focus();
-                                            this.loadPlugin('autoheight');
-                                        },
-                                        items : [
-                                        'source', 'preview', '|', 'fontsize', 'bold', 'italic', 'underline',
-                                        'strikethrough', '|', 'justifyleft', 'justifycenter', 'justifyright', 'insertorderedlist',
-                                        'insertunorderedlist', '|', 'emoticons', 'image', 'flash', 'link']
-                                    };
-                                    window.editor = K.create('#content', options);
-                                });
-
                                 function addReply(username) {
-                                    window.editor.insertHtml('@'+username+'&nbsp;');
+                                    var UMeditor = UM.getEditor('content');
+                                    if (UMeditor.hasContents())
+                                        UMeditor.setContent('@'+username+'&nbsp;', true);
+                                    else
+                                        UMeditor.setContent('@'+username+'&nbsp;');
+                                }
+
+                                function validate_form(thisform){
+                                    if (UM.getEditor('content').getPlainTxt().length<2){
+                                        alert('回复内容不得少于2字');
+                                        return false;
+                                    }
                                 }
                             </script>
-                            <textarea id="content" name="content" style="width:100%;height:200px;visibility:hidden;"><?php echo set_value('content');?></textarea>
+                            <script id="content" name="content" type="text/plain" style="width:100%;height:200px;"><?php echo htmlspecialchars_decode(set_value('content'));?></script>
                             <div class="form-group">
                                 <div class="col-sm-12">
                                     <input type="hidden" id="tid" name="tid" value="<?php echo $topic['tid']; ?>">
@@ -97,6 +90,6 @@
         </div><!-- /.row -->
     </div><!-- /.container -->
 
-<?php include 'common/footer.php';?>
+<?php include 'common/footer_editor.php';?>
 </body>
 </html>
