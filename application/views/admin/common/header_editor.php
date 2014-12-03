@@ -34,7 +34,7 @@
       <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
 
-    <title><?php echo $site_title;?> | <?php echo $site_name;?></title>
+    <title>管理中心 | <?php echo $site_name;?></title>
 </head>
 <body>
     <nav class="navbar navbar-default" role="navigation">
@@ -57,10 +57,9 @@
                     <li<?php if (uri_string()=='node') {echo ' class="active"';}?>><a href="<?php echo base_url('node');?>">节点</a></li>
                     <li<?php if (uri_string()=='topic/add') {echo ' class="active"';}?>><a href="<?php echo base_url('topic/add');?>">发表</a></li>
                 </ul>
-                <form class="navbar-form navbar-left" role="search" action="http://www.google.com/search" method="get" target="_blank">
+                <form class="navbar-form navbar-left" role="search">
                     <div class="form-group">
-                        <input type="text" class="form-control" placeholder="Search" name="q">
-                        <input type="hidden" name="sitesearch" value="<?php echo base_url()?>">
+                        <input type="text" class="form-control" placeholder="Search">
                     </div>
                 </form>
                 <ul class="nav navbar-nav navbar-right">

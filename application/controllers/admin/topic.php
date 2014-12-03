@@ -55,6 +55,41 @@ class Topic extends Admin_Controller {
         }
     }
 
+    /**
+     * 编辑帖子
+     * @param   $tid 帖子id
+     */
+    public function edit($tid=1)
+    {
+        $this->load->helper('form');
+        $this->load->library('form_validation');
+        $this->load->model('node_m');
+
+        $this->form_validation->set_rules('title', 'Title', 'trim|required|min_length[4]');
+        $this->form_validation->set_rules('nid', 'Node', 'required');
+        $this->form_validation->set_rules('content');
+
+        if ($this->form_validation->run() == FALSE)
+        {
+            //form failed
+            $data['nodes']=$this->node_m->get_nodes();
+            $data['topic']=$this->topic_m->get_topic_detail($tid);
+            $this->load->view('admin/topic_edit', $data);
+        }
+        else
+        {
+            //form success
+            $data = array(
+                'nid' => $this->input->post('nid'),
+                'title' => strip_tags($this->input->post('title', TRUE)),
+                'content' => $this->input->post('content')
+            );
+
+            $this->topic_m->update($tid, $data);
+            redirect('topic/'.$tid);
+        }
+    }
+
 }
 
 /* End of file topic.php */
