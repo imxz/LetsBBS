@@ -56,7 +56,7 @@ body {
     width: 64px;
 }
 
-.panel-body img{
+.panel-body p img{
     max-width: 100%;
     height: auto;
 }
