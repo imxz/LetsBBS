@@ -6,7 +6,7 @@
                 <div class="panel panel-default">
                     <div class="panel-body">
                         <div class="col-md-2">
-                            <img class="img-rounded" src="<?php echo base_url($user['avatar'].'big.png');?>" alt="<?php echo $user['username'].'_avatar';?>">
+                            <img class="img-rounded img-responsive" src="<?php echo base_url($user['avatar'].'big.png');?>" alt="<?php echo $user['username'].'_avatar';?>">
                         </div>
                         <div class="col-md-10">
                             <h4><?php echo $user['username'];?></h4>
