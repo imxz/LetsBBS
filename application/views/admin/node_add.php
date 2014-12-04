@@ -28,6 +28,15 @@
                                 </div>
                             </div>
                             <div class="form-group">
+                                <label for="featured" class="col-sm-2 control-label">首页显示</label>
+                                <div class="col-sm-10">
+                                    <select class="form-control" id="featured" name="featured">
+                                        <option value="1">在首页节点列表中显示</option>
+                                        <option value="0">不在首页节点列表中显示</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
                                 <label for="keywords" class="col-sm-2 control-label">关键字</label>
                                 <div class="col-sm-10">
                                     <input type="text" class="form-control" id="keywords" name="keywords">

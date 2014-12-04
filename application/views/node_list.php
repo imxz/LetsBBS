@@ -16,8 +16,15 @@
                               echo '<a href="'.base_url('node/'.$childnode['nid']).'" class="btn btn-default btn-xs nodes" role="button">'.$childnode['nname'].'</a>';
                             }
                             echo '</p></div></div>';
+                          }else{
+                            $singlenode[] = $node;
                           }
-                        } ?>
+                        }
+                        echo '<div class="row"><div class="col-sm-offset-2 col-sm-10"><p>';
+                        foreach ($singlenode as $node) {
+                            echo '<a href="'.base_url('node/'.$node['nid']).'" class="btn btn-default btn-xs nodes" role="button">'.$node['nname'].'</a>';
+                        }
+                        echo '</p></div></div>';?>
                     </div>
                 </div>
             </div><!-- /.col-md-8 -->

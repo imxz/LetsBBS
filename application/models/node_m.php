@@ -11,8 +11,12 @@ class Node_M extends CI_Model {
      * 获取nodes
      * @return  关联数组
      */
-    public function get_nodes()
+    public function get_nodes($where = NULL)
     {
+        if ($where!=NULL) {
+            $this->db->where($where);
+        }
+
         $query = $this->db->get('letsbbs_node');
         $this->db->order_by('nid','desc');
         $nodes = $query->result_array();

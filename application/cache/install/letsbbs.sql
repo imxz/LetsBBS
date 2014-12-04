@@ -47,6 +47,7 @@ DROP TABLE IF EXISTS `letsbbs_node`;
 CREATE TABLE IF NOT EXISTS `letsbbs_node` (
   `nid` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `pid` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `featured` int(11) NOT NULL DEFAULT '1',
   `nname` varchar(250) NOT NULL DEFAULT '',
   `content` text NOT NULL DEFAULT '',
   `keywords` varchar(250) NOT NULL DEFAULT '',

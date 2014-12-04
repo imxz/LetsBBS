@@ -17,7 +17,7 @@ class Topic extends Front_Controller {
         $where = array('a.replytime >' => time()-86400*7, 'a.status' => 1);
         $hot_data=$this->topic_m->get_topic_recent($where, 1, 15, 'recent', 2, 'view');
 
-        $data['nodes']=$this->node_m->get_nodes();
+        $data['nodes']=$this->node_m->get_nodes(array('featured' => 1));
         $data['site_title'] = '欢迎';
         $data['hot_topics'] = $hot_data['topics'];
 
