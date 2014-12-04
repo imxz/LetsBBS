@@ -5,7 +5,7 @@
             <div class="col-md-8">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h3 class="panel-title">网站设置</h3>
+                        <h3 class="panel-title">基本设置</h3>
                     </div>
                     <div class="panel-body">
                         <?php echo validation_errors('<div class="alert alert-danger">', '</div>'); ?>

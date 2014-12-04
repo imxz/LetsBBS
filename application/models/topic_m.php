@@ -31,6 +31,16 @@ class Topic_M extends CI_Model {
     }
 
     /**
+     * 删除主题
+     * @param   $tid 主题id
+     */
+    public function delete($tid)
+    {
+        $this->db->where('tid', $tid);
+        $this->db->delete('letsbbs_topic');
+    }
+
+    /**
      * 根据tid获取帖子详情
      * @param   $tid 帖子id
      * @return       帖子详情

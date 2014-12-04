@@ -29,8 +29,7 @@ class Settings extends Admin_Controller {
         if ($this->form_validation->run() == FALSE)
         {
             //form failed
-            $data=$this->site_m->get_site_settings();
-            $this->load->view('admin/settings_site', $data);
+            $this->load->view('admin/settings_site');
         }
         else
         {
@@ -39,6 +38,29 @@ class Settings extends Admin_Controller {
 
             $this->site_m->update_site($data);
             redirect('admin/settings');
+        }
+    }
+
+    /**
+     * 审核设置
+     * @return [type] [description]
+     */
+    public function verify()
+    {
+        $this->form_validation->set_rules('site_topic_status', 'Default Topic Status', 'required');
+
+        if ($this->form_validation->run() == FALSE)
+        {
+            //form failed
+            $this->load->view('admin/settings_verify');
+        }
+        else
+        {
+            //form success
+            $data = $this->input->post();
+
+            $this->site_m->update_site($data);
+            redirect('admin/settings/verify');
         }
     }
 }

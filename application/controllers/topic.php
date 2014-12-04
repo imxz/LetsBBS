@@ -11,9 +11,10 @@ class Topic extends Front_Controller {
     public function index()
     {
         $this->load->model('node_m');
-        $data=$this->topic_m->get_topic_recent(NULL, 1, 20, 'recent', 2);
+        $where = array('a.status' => 1);
+        $data=$this->topic_m->get_topic_recent($where, 1, 20, 'recent', 2);
 
-        $where = array('a.replytime >' => time()-86400*7);
+        $where = array('a.replytime >' => time()-86400*7, 'a.status' => 1);
         $hot_data=$this->topic_m->get_topic_recent($where, 1, 15, 'recent', 2, 'view');
 
         $data['nodes']=$this->node_m->get_nodes();
@@ -29,7 +30,8 @@ class Topic extends Front_Controller {
      */
     public function recent($page = 1)
     {
-        $data=$this->topic_m->get_topic_recent(NULL, $page, 20, 'recent', 2);
+        $where = array('a.status' => 1);
+        $data=$this->topic_m->get_topic_recent($where, $page, 20, 'recent', 2);
 
         if ($page>1) {
             $data['site_title'] = '最近的主题 '.$page.'/'.$data['num_pages'];
@@ -47,8 +49,8 @@ class Topic extends Front_Controller {
         $this->load->helper('form');
         $this->load->model('comment_m');
 
-        $data['comments']=$this->comment_m->get_comments_bytid($tid);
         $data['topic']=$this->topic_m->get_topic_detail($tid);
+        $data['comments']=$this->comment_m->get_comments_bytid($tid);
         $data['site_title'] = $data['topic']['title'];
         $this->load->view('topic_detail', $data);
 
@@ -82,13 +84,17 @@ class Topic extends Front_Controller {
         else
         {
             //form success
+            $this->load->model('site_m');
+            $site_settings = $this->site_m->get_site_settings();
+
             $data = array(
                 'nid' => $this->input->post('nid'),
                 'uid' => $this->session->userdata('uid'),
                 'title' => strip_tags($this->input->post('title', TRUE)),
                 'content' => $this->input->post('content'),
                 'addtime' => time(),
-                'replytime' => time()
+                'replytime' => time(),
+                'status' => $site_settings['site_topic_status']
             );
 
             $insert_id = $this->topic_m->add($data);

@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS `letsbbs_topic` (
   `replytime` int(10) unsigned NOT NULL DEFAULT '0',
   `view` bigint(20) unsigned NOT NULL DEFAULT '0',
   `comment` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `status` int(11) NOT NULL DEFAULT '1',
   PRIMARY KEY (`tid`),
   KEY `replytime` (`replytime`),
   KEY `nid` (`nid`),
@@ -91,4 +92,5 @@ INSERT INTO `letsbbs_option` (`oid`, `oname`, `ovalue`) VALUES
 (3, 'site_welcome_msg', '欢迎访问 Let\'sBBS'),
 (4, 'site_keywords', 'Let\'sBBS'),
 (5, 'site_description', '<p>欢迎访问 Let\'sBBS ！<p/><p>Let\'sBBS 是一个简约开源的轻社区程序。<p/>'),
-(6, 'site_analysis', '');
+(6, 'site_analysis', ''),
+(7, 'site_topic_status', '1');

@@ -5,15 +5,9 @@
             <div class="col-md-8">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h3 class="panel-title">所有主题</h3>
+                        <h3 class="panel-title">待审核主题</h3>
                     </div>
                     <div class="panel-body table-responsive">
-                        <?php echo form_open('admin/topic/search', array('class' => 'navbar-form navbar-left', 'role' => 'form'));?>
-                            <div class="form-group">
-                                <input type="text" class="form-control" id="title" name="title" placeholder="搜索标题" value="<?php echo $title; ?>">
-                            </div>
-                            <button type="submit" class="btn btn-default">提交</button>
-                        </form>
                         <table class="table">
                             <thead>
                               <tr>
@@ -31,7 +25,7 @@
                                 <td><a href="<?php echo base_url('topic/'.$topic['tid']);?>" target="_blank"><?php echo $topic['title'];?></a></td>
                                 <td><a href="<?php echo base_url('member/'.$topic['username']);?>" target="_blank"><?php echo $topic['username'];?></a></td>
                                 <td><?php echo date('m-d H:i', $topic['addtime']); ?></td>
-                                <td><a href="<?php echo base_url('admin/topic/edit/'.$topic['tid']);?>" target="_blank">编辑</a></td>
+                                <td><a href="<?php echo base_url('admin/topic/edit/'.$topic['tid']);?>" target="_blank">编辑</a> <a href="<?php echo base_url('admin/topic/active/'.$topic['tid']);?>">通过</a> <a href="<?php echo base_url('admin/topic/del/'.$topic['tid']);?>">删除</a></td>
                             </tr>
                             <?php endforeach; ?>
                             </tbody>

@@ -56,6 +56,37 @@ class Topic extends Admin_Controller {
     }
 
     /**
+     * 待审核主题列表
+     * @param   $page 当前页码
+     */
+    public function verify($page = 1)
+    {
+        $where = array('a.status' => 0);
+        $data=$this->topic_m->get_topic_recent($where, $page, 20, 'admin/topic/verify', 4);
+        $this->load->view('admin/topic_verify_list', $data);
+    }
+
+    /**
+     * 审核通过
+     * @param   $tid 主题id
+     */
+    public function active($tid)
+    {
+        $this->topic_m->update($tid, array('status' => 1));
+        redirect($this->input->server('HTTP_REFERER'));
+    }
+
+     /**
+     * 删除
+     * @param   $tid 主题id
+     */
+    public function del($tid)
+    {
+        $this->topic_m->delete($tid);
+        redirect($this->input->server('HTTP_REFERER'));
+    }
+
+    /**
      * 编辑帖子
      * @param   $tid 帖子id
      */

@@ -27,7 +27,7 @@ class Node extends Front_Controller {
     public function recent($nid, $page=1)
     {
         $this->load->model('topic_m');
-        $where = array('a.nid' => $nid);
+        $where = array('a.nid' => $nid, 'a.status' => 1);
         $data=$this->topic_m->get_topic_recent($where, $page, 20, 'node/'.$nid, 3);
 
         $data['nid'] = $nid;

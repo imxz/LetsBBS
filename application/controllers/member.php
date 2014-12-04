@@ -17,8 +17,9 @@ class Member extends Front_Controller {
     public function index($username)
     {
         $user['user']=$this->user_m->get_user_byname($username);
-        $where = array('a.uid' => $user['user']['uid']);
+        $where = array('a.uid' => $user['user']['uid'], 'a.status' => 1);
         $topics=$this->topic_m->get_topic_recent($where, 1 ,15 ,'member/'.$username.'/topic', 4);
+        $where = array('a.uid' => $user['user']['uid']);
         $comments=$this->comment_m->get_comments_recent($where, 1 ,15 ,'member/'.$username.'/comment', 4);
         $data=array_merge($user, $topics, $comments);
 
@@ -34,7 +35,7 @@ class Member extends Front_Controller {
     public function topic($username, $page)
     {
         $user['user']=$this->user_m->get_user_byname($username);
-        $where = array('a.uid' => $user['user']['uid']);
+        $where = array('a.uid' => $user['user']['uid'], 'a.status' => 1);
         $topics=$this->topic_m->get_topic_recent($where, $page ,15 ,'member/'.$username.'/topic', 4);
         $data=array_merge($user, $topics);
 
