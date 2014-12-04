@@ -14,7 +14,7 @@ class Topic extends Front_Controller {
         $where = array('a.status' => 1);
         $data=$this->topic_m->get_topic_recent($where, 1, 20, 'recent', 2);
 
-        $where = array('a.replytime >' => time()-86400*7, 'a.status' => 1);
+        $where = array('a.addtime >' => time()-86400*7, 'a.status' => 1);
         $hot_data=$this->topic_m->get_topic_recent($where, 1, 15, 'recent', 2, 'view');
 
         $data['nodes']=$this->node_m->get_nodes(array('featured' => 1));
@@ -98,6 +98,9 @@ class Topic extends Front_Controller {
             );
 
             $insert_id = $this->topic_m->add($data);
+
+            //更新用户发表帖子数量
+            $this->db->set('topic', 'topic+1', FALSE)->where('uid', $this->session->userdata('uid'))->update('letsbbs_user');
             redirect('topic/'.$insert_id);
         }
     }
