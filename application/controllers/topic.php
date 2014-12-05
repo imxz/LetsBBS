@@ -65,6 +65,7 @@ class Topic extends Front_Controller {
     {
         $this->load->helper('auth');
         is_login_exit();
+        is_user_active_exit();
 
         $this->load->helper('form');
         $this->load->library('form_validation');

@@ -31,7 +31,7 @@
                                 <td><a href="<?php echo base_url('topic/'.$topic['tid']);?>" target="_blank"><?php echo $topic['title'];?></a></td>
                                 <td><a href="<?php echo base_url('member/'.$topic['username']);?>" target="_blank"><?php echo $topic['username'];?></a></td>
                                 <td><?php echo date('m-d H:i', $topic['addtime']); ?></td>
-                                <td><a href="<?php echo base_url('admin/topic/edit/'.$topic['tid']);?>" target="_blank">编辑</a></td>
+                                <td><a href="<?php echo base_url('admin/topic/edit/'.$topic['tid']);?>" target="_blank">编辑</a> <a href="<?php echo base_url('admin/topic/del/'.$topic['tid']);?>">删除</a></td>
                             </tr>
                             <?php endforeach; ?>
                             </tbody>

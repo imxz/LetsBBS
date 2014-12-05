@@ -6,7 +6,8 @@
                 </div>
                 <div class="list-group">
                     <a href="<?php echo base_url('admin/user');?>" class="list-group-item active">用户</a>
-                    <a href="<?php echo base_url('admin/user');?>" class="list-group-item">用户列表</a>
+                    <a href="<?php echo base_url('admin/user');?>" class="list-group-item">所有用户</a>
+                    <a href="<?php echo base_url('admin/user/banned');?>" class="list-group-item">禁言用户</a>
                 </div>
                 <div class="list-group">
                     <a href="<?php echo base_url('admin/node');?>" class="list-group-item active">节点</a>

@@ -12,6 +12,7 @@ class Comment extends Front_Controller {
 
         $this->load->helper('auth');
         is_login_exit();
+        is_user_active_exit();
     }
 
     /**
@@ -19,6 +20,8 @@ class Comment extends Front_Controller {
      */
     public function add()
     {
+        $topic=$this->topic_m->get_topic_detail($this->input->post('tid'));
+
         //添加评论
         $data = array(
             'tid' => $this->input->post('tid'),
@@ -43,17 +46,18 @@ class Comment extends Front_Controller {
                 'addtime' => time()
                 );
             foreach ($matches [4] as $to_username) {
-                $to_userinfo=$this->user_m->get_user_byname($to_username);
-                $n_data['tuid']=$to_userinfo['uid'];
-                //写入notifications表 更新通知
-                $this->notification_m->add($n_data);
-                //更新to user的未读提醒数
-                $this->user_m->update($to_userinfo['uid'], array('notice' => $to_userinfo['notice']+1));
+                if ($to_username != $topic['username']) { //@的对象不是本文的作者
+                    $to_userinfo=$this->user_m->get_user_byname($to_username);
+                    $n_data['tuid']=$to_userinfo['uid'];
+                    //写入notifications表 更新通知
+                    $this->notification_m->add($n_data);
+                    //更新to user的未读提醒数
+                    $this->user_m->update($to_userinfo['uid'], array('notice' => $to_userinfo['notice']+1));
+                }
             }
         }
 
         //更新帖子的信息
-        $topic=$this->topic_m->get_topic_detail($this->input->post('tid'));
         $updatedata = array(
             'replyuid' => $this->session->userdata('uid'),
             'replytime' => time(),

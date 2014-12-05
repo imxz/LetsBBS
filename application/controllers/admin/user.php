@@ -26,6 +26,15 @@ class User extends Admin_Controller {
     }
 
     /**
+     * 禁言用户列表
+     */
+    public function banned($page = 1)
+    {
+        $data=$this->user_m->get_users_list(array('is_active' => 0), $page, 20, $url='admin/user/banned', 4);
+        $this->load->view('admin/user_banned_list', $data);
+    }
+
+    /**
      * 搜索用户
      * @param   $page 当前页码
      */
@@ -52,6 +61,66 @@ class User extends Admin_Controller {
             $data['username'] = $this->session->userdata('search_username_keywords');
             $this->load->view('admin/user_list', $data);
         }
+    }
+
+    /**
+     * 用户编辑
+     * @param   $uid 用户id
+     */
+    public function edit($uid)
+    {
+        $this->load->helper('form');
+        $this->load->library('form_validation');
+
+        $this->form_validation->set_rules('email', 'Email', 'trim|required');
+        $this->form_validation->set_rules('qq', 'QQ', 'trim|integer');
+
+        if ($this->form_validation->run() == FALSE)
+        {
+            //form failed
+            $data=$this->user_m->get_user_byid($uid);
+            $this->load->view('admin/user_edit', $data);
+        }
+        else
+        {
+            //form success
+            $data = array(
+                'username' => $this->input->post('username'),
+                'email' => $this->input->post('email'),
+                'qq' => $this->input->post('qq'),
+                'location' => $this->input->post('location', TRUE),
+                'homepage' => prep_url($this->input->post('homepage', TRUE)),
+                'signature' => $this->input->post('signature', TRUE),
+                'introduction' => $this->input->post('introduction', TRUE)
+                );
+
+            if ($this->input->post('reavatar') == '1') {
+                $data['avatar'] = 'uploads/avatar/default/';
+            }
+
+            $this->user_m->update($uid, $data);
+            redirect($this->input->server('HTTP_REFERER'));
+        }
+    }
+
+    /**
+     * 用户禁言
+     * @param   $uid 用户id
+     */
+    public function ban($uid)
+    {
+        $this->user_m->update($uid, array('is_active' => 0));
+        redirect($this->input->server('HTTP_REFERER'));
+    }
+
+    /**
+     * 用户恢复激活
+     * @param   $uid 用户id
+     */
+    public function active($uid)
+    {
+        $this->user_m->update($uid, array('is_active' => 1));
+        redirect($this->input->server('HTTP_REFERER'));
     }
 
 }

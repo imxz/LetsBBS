@@ -22,12 +22,14 @@ class Front_Controller extends Base_Controller {
     {
         parent::__construct();
 
-        //更新提醒数量
+        //更新用户组、提醒数量、禁言
         if ($this->session->userdata('uid')) {
             $this->db->where('uid', $this->session->userdata('uid'));
             $query = $this->db->get('letsbbs_user');
             $user_info = $query->row_array();
             $this->session->set_userdata('notification', $user_info['notice']);
+            $this->session->set_userdata('group_id', $user_info['group_id']);
+            $this->session->set_userdata('is_active', $user_info['is_active']);
         }
     }
 }

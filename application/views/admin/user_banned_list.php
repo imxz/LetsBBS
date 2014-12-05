@@ -5,15 +5,9 @@
             <div class="col-md-8">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h3 class="panel-title">所有用户</h3>
+                        <h3 class="panel-title">禁言用户</h3>
                     </div>
                     <div class="panel-body table-responsive">
-                        <?php echo form_open('admin/user/search', array('class' => 'navbar-form navbar-left', 'role' => 'form'));?>
-                            <div class="form-group">
-                                <input type="text" class="form-control" id="username" name="username" placeholder="搜索用户名" value="<?php echo $username; ?>">
-                            </div>
-                            <button type="submit" class="btn btn-default">提交</button>
-                        </form>
                         <table class="table">
                             <thead>
                               <tr>
@@ -31,13 +25,7 @@
                                 <td><a href="<?php echo base_url('member/'.$user['username']);?>" target="_blank"><?php echo $user['username'];?></a></td>
                                 <td><?php echo $user['email']; ?></td>
                                 <td><?php echo date('Y-m-d H:i', $user['regtime']); ?></td>
-                                <td><a href="<?php echo base_url('admin/user/edit/'.$user['uid']);?>" target="_blank">编辑</a>
-                                    <?php if ($user['is_active'] == '1') : ?>
-                                    　<a href="<?php echo base_url('admin/user/ban/'.$user['uid']);?>">禁言</a>
-                                    <?php else : ?>
-                                    　已禁言
-                                    <?php endif;?>
-                                </td>
+                                <td><a href="<?php echo base_url('admin/user/edit/'.$user['uid']);?>" target="_blank">编辑</a>　<a href="<?php echo base_url('admin/user/active/'.$user['uid']);?>">激活</a></td>
                             </tr>
                             <?php endforeach; ?>
                             </tbody>

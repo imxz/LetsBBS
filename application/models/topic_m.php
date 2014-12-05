@@ -31,13 +31,14 @@ class Topic_M extends CI_Model {
     }
 
     /**
-     * 删除主题
+     * 删除主题以及与其相关的内容
      * @param   $tid 主题id
      */
     public function delete($tid)
     {
+        $tables = array('letsbbs_topic', 'letsbbs_comment', 'letsbbs_notification');
         $this->db->where('tid', $tid);
-        $this->db->delete('letsbbs_topic');
+        $this->db->delete($tables);
     }
 
     /**
