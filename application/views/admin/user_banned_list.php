@@ -8,6 +8,12 @@
                         <h3 class="panel-title">禁言用户</h3>
                     </div>
                     <div class="panel-body table-responsive">
+                        <?php echo form_open('admin/user/banusers', array('class' => 'navbar-form navbar-left', 'role' => 'form'));?>
+                            <div class="form-group">
+                                <input type="text" class="form-control" id="username" name="username" placeholder="搜索用户名" value="<?php echo $username; ?>">
+                            </div>
+                            <button type="submit" class="btn btn-default">提交</button>
+                        </form>
                         <table class="table">
                             <thead>
                               <tr>

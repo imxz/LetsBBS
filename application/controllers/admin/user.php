@@ -30,8 +30,40 @@ class User extends Admin_Controller {
      */
     public function banned($page = 1)
     {
+        $this->load->helper('form');
+
         $data=$this->user_m->get_users_list(array('is_active' => 0), $page, 20, $url='admin/user/banned', 4);
+        $data['username'] = '';
         $this->load->view('admin/user_banned_list', $data);
+    }
+
+    /**
+     * 搜索ban用户
+     * @param   $page 当前页码
+     */
+    public function banusers($page = 1)
+    {
+        $this->load->helper('form');
+        $this->load->library('form_validation');
+        $this->form_validation->set_rules('username');
+
+        if ($this->form_validation->run() == FALSE){
+            //没有提交form
+            if ($this->session->userdata('search_banusername_keywords')) {
+                $where = array('username like' => '%'.$this->session->userdata('search_banusername_keywords').'%', 'is_active' => 0);
+                $data=$this->user_m->get_users_list($where, $page, 20, 'admin/user/banusers', 4);
+                $data['username'] = $this->session->userdata('search_banusername_keywords');
+                $this->load->view('admin/user_banned_list', $data);
+            } else {
+                $this->banned($page);
+            }
+        }else{
+            $this->session->set_userdata('search_banusername_keywords', $this->input->post('username'));
+            $where = array('username like' => '%'.$this->session->userdata('search_banusername_keywords').'%', 'is_active' => 0);
+            $data=$this->user_m->get_users_list($where, $page, 20, 'admin/user/banusers', 4);
+            $data['username'] = $this->session->userdata('search_banusername_keywords');
+            $this->load->view('admin/user_banned_list', $data);
+        }
     }
 
     /**
