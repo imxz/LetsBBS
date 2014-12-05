@@ -25,7 +25,7 @@
             window.um = UM.getEditor('content');
         }else{
             window.um = UM.getEditor('content', {
-            toolbar: ['bold italic underline strikethrough horizontal | justifyleft justifycenter justifyright justifyjustify insertorderedlist insertunorderedlist']
+            toolbar: ['']
         });
         };
     });

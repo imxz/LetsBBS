@@ -21,7 +21,7 @@ class Topic extends Admin_Controller {
     {
         $this->load->helper('form');
 
-        $data=$this->topic_m->get_topic_recent(NULL, $page, 20, 'admin/topic/page', 4);
+        $data=$this->topic_m->get_topic_recent(NULL, $page, 20, 'admin/topic/page', 4, 'addtime');
         $data['title'] = '';
         $this->load->view('admin/topic_list', $data);
     }
@@ -40,7 +40,7 @@ class Topic extends Admin_Controller {
             //没有提交form
             if ($this->session->userdata('search_topic_keywords')) {
                 $where = array('a.title like' => '%'.$this->session->userdata('search_topic_keywords').'%');
-                $data=$this->topic_m->get_topic_recent($where, $page, 20, 'admin/topic/search', 4);
+                $data=$this->topic_m->get_topic_recent($where, $page, 20, 'admin/topic/search', 4, 'addtime');
                 $data['title'] = $this->session->userdata('search_topic_keywords');
                 $this->load->view('admin/topic_list', $data);
             } else {
@@ -49,7 +49,7 @@ class Topic extends Admin_Controller {
         }else{
             $this->session->set_userdata('search_topic_keywords', $this->input->post('title'));
             $where = array('a.title like' => '%'.$this->session->userdata('search_topic_keywords').'%');
-            $data=$this->topic_m->get_topic_recent($where, $page, 20, 'admin/topic/search', 4);
+            $data=$this->topic_m->get_topic_recent($where, $page, 20, 'admin/topic/search', 4, 'addtime');
             $data['title'] = $this->session->userdata('search_topic_keywords');
             $this->load->view('admin/topic_list', $data);
         }
@@ -62,7 +62,7 @@ class Topic extends Admin_Controller {
     public function verify($page = 1)
     {
         $where = array('a.status' => 0);
-        $data=$this->topic_m->get_topic_recent($where, $page, 20, 'admin/topic/verify', 4);
+        $data=$this->topic_m->get_topic_recent($where, $page, 20, 'admin/topic/verify', 4, 'addtime');
         $this->load->view('admin/topic_verify_list', $data);
     }
 
