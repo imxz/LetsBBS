@@ -21,9 +21,13 @@
     <!-- 实例化编辑器代码 -->
     <script type="text/javascript">
     $(function(){
-        window.um = UM.getEditor('content', {
-            /* 传入配置参数,可配参数列表看umeditor.config.js */
+        if (document.body.clientWidth > 720) {
+            window.um = UM.getEditor('content');
+        }else{
+            window.um = UM.getEditor('content', {
+            toolbar: ['bold italic underline strikethrough horizontal | justifyleft justifycenter justifyright justifyjustify insertorderedlist insertunorderedlist']
         });
+        };
     });
     </script>
 
