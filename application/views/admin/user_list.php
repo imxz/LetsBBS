@@ -30,7 +30,7 @@
                                 <td><?php echo $user['uid']; ?></td>
                                 <td><a href="<?php echo base_url('member/'.$user['username']);?>" target="_blank"><?php echo $user['username'];?></a></td>
                                 <td><?php echo $user['email']; ?></td>
-                                <td><?php echo date('Y-m-d H:i', $user['regtime']); ?></td>
+                                <td><span title="<?php echo date('Y-m-d H:i', $user['regtime']); ?>"><?php echo date('m-d H:i', $user['regtime']); ?></span></td>
                                 <td><a href="<?php echo base_url('admin/user/edit/'.$user['uid']);?>" target="_blank">编辑</a>
                                     <?php if ($user['is_active'] == '1') : ?>
                                     　<a href="<?php echo base_url('admin/user/ban/'.$user['uid']);?>">禁言</a>

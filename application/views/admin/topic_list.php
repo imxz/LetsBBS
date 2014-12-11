@@ -28,9 +28,9 @@
                             <?php foreach ($topics as $topic) : ?>
                               <tr>
                                 <td><?php echo $topic['tid'];?></td>
-                                <td><a href="<?php echo base_url('topic/'.$topic['tid']);?>" target="_blank"><?php echo $topic['title'];?></a></td>
+                                <td><a href="<?php echo base_url('topic/'.$topic['tid']);?>" title="<?php echo $topic['title'];?>" target="_blank"><?php echo mb_strimwidth($topic['title'], 0, 36, '...');?></a></td>
                                 <td><a href="<?php echo base_url('member/'.$topic['username']);?>" target="_blank"><?php echo $topic['username'];?></a></td>
-                                <td><?php echo date('m-d H:i', $topic['addtime']); ?></td>
+                                <td><span title="<?php echo date('Y-m-d H:i', $topic['addtime']); ?>"><?php echo date('m-d H:i', $topic['addtime']); ?></span></td>
                                 <td><a href="<?php echo base_url('admin/topic/edit/'.$topic['tid']);?>" target="_blank">编辑</a> <a href="javascript:if(confirm('确实要删除吗?'))location='<?php echo base_url('admin/topic/del/'.$topic['tid']);?>'">删除</a></td>
                             </tr>
                             <?php endforeach; ?>
