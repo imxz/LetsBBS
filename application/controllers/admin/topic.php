@@ -112,7 +112,7 @@ class Topic extends Admin_Controller {
             //form success
             $data = array(
                 'nid' => $this->input->post('nid'),
-                'title' => strip_tags($this->input->post('title', TRUE)),
+                'title' => htmlspecialchars($this->input->post('title')),
                 'content' => $this->input->post('content')
             );
 

@@ -120,10 +120,10 @@ class User extends Admin_Controller {
                 'username' => $this->input->post('username'),
                 'email' => $this->input->post('email'),
                 'qq' => $this->input->post('qq'),
-                'location' => $this->input->post('location', TRUE),
-                'homepage' => prep_url($this->input->post('homepage', TRUE)),
-                'signature' => $this->input->post('signature', TRUE),
-                'introduction' => $this->input->post('introduction', TRUE)
+                'location' => htmlspecialchars($this->input->post('location')),
+                'homepage' => prep_url(htmlspecialchars($this->input->post('homepage'))),
+                'signature' => htmlspecialchars($this->input->post('signature')),
+                'introduction' => htmlspecialchars($this->input->post('introduction'))
                 );
 
             if ($this->input->post('reavatar') == '1') {
