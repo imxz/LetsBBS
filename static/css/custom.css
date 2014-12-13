@@ -56,6 +56,11 @@ body {
     width: 64px;
 }
 
+.panel-body p{
+    word-break: break-all;
+    word-wrap: break-word;
+}
+
 .panel-body p img{
     max-width: 100%;
     height: auto;
