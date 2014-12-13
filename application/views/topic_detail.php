@@ -68,7 +68,7 @@
                                     }
                                 }
                             </script>
-                            <script id="content" name="content" type="text/plain" style="width:100%;height:200px;"><?php echo htmlspecialchars_decode(set_value('content'));?></script>
+                            <script id="content" name="content" type="text/plain" style="width:100%;height:200px;"></script>
                             <div class="form-group">
                                 <div class="col-sm-12">
                                     <input type="hidden" id="tid" name="tid" value="<?php echo $topic['tid']; ?>">

@@ -91,7 +91,7 @@ class Topic extends Front_Controller {
             $data = array(
                 'nid' => $this->input->post('nid'),
                 'uid' => $this->session->userdata('uid'),
-                'title' => strip_tags($this->input->post('title', TRUE)),
+                'title' => htmlspecialchars($this->input->post('title')),
                 'content' => $this->input->post('content'),
                 'addtime' => time(),
                 'replytime' => time(),

@@ -34,7 +34,7 @@
                                 <script>document.getElementById("nid").value="<?php echo $topic['nid'];?>";</script>
                             </div>
                             <div class="form-group">
-                                <script id="content" name="content" type="text/plain" style="width:100%;height:300px;"><?php echo htmlspecialchars_decode($topic['content']);?></script>
+                                <script id="content" name="content" type="text/plain" style="width:100%;height:300px;"><?php echo $topic['content'];?></script>
                             </div>
                             <button type="submit" class="btn btn-default">提交</button>
                         </form>
