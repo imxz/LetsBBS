@@ -35,19 +35,22 @@ class Comment extends Front_Controller {
         $this->db->set('reply', 'reply+1', FALSE)->where('uid', $this->session->userdata('uid'))->update('letsbbs_user');
 
         //@功能的发送回复提醒
-        $pattern = '/@<a(.*?)href="(.*?)"(.*?)>(.*?)<\/a>/';
+        $pattern = '/@<a href=[^>]*?>([a-z0-9]{3,12})<\/a>/';
         preg_match_all ( $pattern, $data['content'], $matches );
-        $matches [4] = array_unique($matches [4]);
-        if ($matches [4]) {
+        $matches[1] = array_unique($matches[1]);
+        if ($matches[1]) {
             $n_data = array(
                 'cid' => $comment_id,
                 'tid' => $this->input->post('tid'),
                 'fuid' => $this->session->userdata('uid'),
                 'addtime' => time()
                 );
-            foreach ($matches [4] as $to_username) {
+            foreach ($matches[1] as $to_username) {
                 if ($to_username != $topic['username']) { //@的对象不是本文的作者
                     $to_userinfo=$this->user_m->get_user_byname($to_username);
+                    if (!$to_userinfo) { //判断是否有这个用户
+                        continue;
+                    }
                     $n_data['tuid']=$to_userinfo['uid'];
                     //写入notifications表 更新通知
                     $this->notification_m->add($n_data);
