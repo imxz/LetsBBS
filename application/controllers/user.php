@@ -18,7 +18,7 @@ class User extends Front_Controller {
 
         $this->form_validation->set_rules('username', 'UserName', 'trim|required|alpha_numeric|min_length[3]|max_length[12]|is_unique[letsbbs_user.username]');
         $this->form_validation->set_rules('password', 'PassWord', 'trim|required|md5');
-        $this->form_validation->set_rules('email', 'Email', 'trim|required|is_unique[letsbbs_user.email]');
+        $this->form_validation->set_rules('email', 'Email', 'trim|required|valid_email|is_unique[letsbbs_user.email]');
         $this->form_validation->set_rules('captcha', 'Captcha', 'trim|callback_captcha_check');
 
         if ($this->form_validation->run() == FALSE)
@@ -32,7 +32,7 @@ class User extends Front_Controller {
         {
             //form success
             $data = array(
-                'username' => strtolower($this->input->post('username', TRUE)),
+                'username' => strtolower($this->input->post('username')),
                 'password' => $this->input->post('password'),
                 'email' => $this->input->post('email'),
                 'regtime' => time()

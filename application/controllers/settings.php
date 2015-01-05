@@ -27,7 +27,7 @@ class Settings extends Front_Controller {
         $this->load->helper('form');
         $this->load->library('form_validation');
 
-        $this->form_validation->set_rules('email', 'Email', 'trim|required');
+        $this->form_validation->set_rules('email', 'Email', 'trim|required|valid_email');
         $this->form_validation->set_rules('qq', 'QQ', 'trim|integer');
 
         if ($this->form_validation->run() == FALSE)
