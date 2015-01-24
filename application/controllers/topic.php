@@ -78,6 +78,19 @@ class Topic extends Front_Controller {
         is_login_exit();
         is_user_active_exit();
 
+        $this->load->model('node_m');
+        $node = $this->node_m->get_node_byid($this->input->post('nid'));
+        if (!$node) {
+            $string='
+            <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+            <script>
+            alert("无法向不存在的节点添加主题");
+            top.location="'.$this->input->server('HTTP_REFERER').'";
+            </script>
+            ';
+            exit($string);
+        }
+
         $this->load->helper('form');
         $this->load->library('form_validation');
         $this->load->model('node_m');
