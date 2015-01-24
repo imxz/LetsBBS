@@ -11,25 +11,25 @@
                         <?php echo validation_errors('<div class="alert alert-danger">', '</div>'); ?>
                         <?php echo form_open('reg', array('class' => 'form-horizontal', 'role' => 'form'));?>
                             <div class="form-group">
-                                <label for="username" class="col-sm-2 control-label">Name</label>
+                                <label for="username" class="col-sm-2 control-label">用户名</label>
                                 <div class="col-sm-10">
                                     <input type="text" class="form-control" id="username" name="username" placeholder="请使用3-12位长度小写字母或数字组合">
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label for="password" class="col-sm-2 control-label">PassWord</label>
+                                <label for="password" class="col-sm-2 control-label">密码</label>
                                 <div class="col-sm-10">
                                     <input type="password" class="form-control" id="password" name="password" placeholder="Password">
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label for="email" class="col-sm-2 control-label">Email</label>
+                                <label for="email" class="col-sm-2 control-label">邮箱</label>
                                 <div class="col-sm-10">
                                     <input type="email" class="form-control" id="email" name="email" placeholder="Email">
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label for="captcha" class="col-sm-2 control-label">Captcha</label>
+                                <label for="captcha" class="col-sm-2 control-label">验证码</label>
                                 <div class="col-sm-5">
                                     <input type="text" class="form-control" id="captcha" name="captcha" placeholder="Captcha">
                                 </div>

@@ -11,19 +11,19 @@
                         <?php echo validation_errors('<div class="alert alert-danger">', '</div>'); ?>
                         <?php echo form_open('login', array('class' => 'form-horizontal', 'role' => 'form'));?>
                             <div class="form-group">
-                                <label for="username" class="col-sm-2 control-label">Name</label>
+                                <label for="username" class="col-sm-2 control-label">用户名</label>
                                 <div class="col-sm-10">
                                     <input type="text" class="form-control" id="username" name="username" placeholder="User Name">
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label for="password" class="col-sm-2 control-label">PassWord</label>
+                                <label for="password" class="col-sm-2 control-label">密码</label>
                                 <div class="col-sm-10">
                                     <input type="password" class="form-control" id="password" name="password" placeholder="Password">
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label for="captcha" class="col-sm-2 control-label">Captcha</label>
+                                <label for="captcha" class="col-sm-2 control-label">验证码</label>
                                 <div class="col-sm-5">
                                     <input type="text" class="form-control" id="captcha" name="captcha" placeholder="Captcha">
                                 </div>
