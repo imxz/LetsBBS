@@ -21,6 +21,16 @@ class Comment extends Front_Controller {
     public function add()
     {
         $topic=$this->topic_m->get_topic_detail($this->input->post('tid'));
+        if (!$topic) {
+            $string='
+            <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+            <script>
+            alert("无法向不存在的主题添加回复");
+            top.location="'.$this->input->server('HTTP_REFERER').'";
+            </script>
+            ';
+            exit($string);
+        }
 
         //添加评论
         $data = array(
