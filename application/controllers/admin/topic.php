@@ -96,8 +96,8 @@ class Topic extends Admin_Controller {
         $this->load->library('form_validation');
         $this->load->model('node_m');
 
-        $this->form_validation->set_rules('title', 'Title', 'trim|required|min_length[4]');
-        $this->form_validation->set_rules('nid', 'Node', 'required');
+        $this->form_validation->set_rules('title', '标题', 'trim|required|min_length[4]');
+        $this->form_validation->set_rules('nid', '节点', 'required');
         $this->form_validation->set_rules('content');
 
         if ($this->form_validation->run() == FALSE)

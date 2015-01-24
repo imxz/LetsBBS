@@ -118,9 +118,9 @@ class Settings extends Front_Controller {
         $this->load->helper('form');
         $this->load->library('form_validation');
 
-        $this->form_validation->set_rules('password', 'Password', 'trim|required|md5|callback_password_check');
-        $this->form_validation->set_rules('newpassword', 'New Password', 'trim|required|matches[newpassconf]|md5');
-        $this->form_validation->set_rules('newpassconf', 'New Password Confirmation', 'trim|required|md5');
+        $this->form_validation->set_rules('password', '密码', 'trim|required|md5|callback_password_check');
+        $this->form_validation->set_rules('newpassword', '新的密码', 'trim|required|matches[newpassconf]|md5');
+        $this->form_validation->set_rules('newpassconf', '确认新密码', 'trim|required|md5');
 
         if ($this->form_validation->run() == FALSE)
         {

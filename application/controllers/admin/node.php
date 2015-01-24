@@ -25,9 +25,9 @@ class Node extends Admin_Controller {
         $this->load->helper('form');
         $this->load->library('form_validation');
 
-        $this->form_validation->set_rules('nname', 'Name', 'trim|required|is_unique[letsbbs_node.nname]');
-        $this->form_validation->set_rules('keywords', 'Keywords', 'trim');
-        $this->form_validation->set_rules('content', 'Content', 'trim');
+        $this->form_validation->set_rules('nname', '节点名称', 'trim|required|is_unique[letsbbs_node.nname]');
+        $this->form_validation->set_rules('keywords', '关键词', 'trim');
+        $this->form_validation->set_rules('content', '简介', 'trim');
 
         if ($this->form_validation->run() == FALSE)
         {
@@ -53,7 +53,7 @@ class Node extends Admin_Controller {
         $this->load->helper('form');
         $this->load->library('form_validation');
 
-        $this->form_validation->set_rules('nname', 'Name', 'trim|required');
+        $this->form_validation->set_rules('nname', '节点名称', 'trim|required');
 
         if ($this->form_validation->run() == FALSE)
         {

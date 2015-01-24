@@ -20,11 +20,11 @@ class Settings extends Admin_Controller {
      */
     public function site()
     {
-        $this->form_validation->set_rules('site_name', 'Site Name', 'trim|required');
-        $this->form_validation->set_rules('site_subtitle', 'Site Subtitle', 'trim');
-        $this->form_validation->set_rules('site_welcome_msg', 'Welcome Msg', 'trim');
-        $this->form_validation->set_rules('site_keywords', 'Site Keywords', 'trim');
-        $this->form_validation->set_rules('site_description', 'Site Description', 'trim');
+        $this->form_validation->set_rules('site_name', '网站名', 'trim|required');
+        $this->form_validation->set_rules('site_subtitle', '网站副标题', 'trim');
+        $this->form_validation->set_rules('site_welcome_msg', '欢迎信息', 'trim');
+        $this->form_validation->set_rules('site_keywords', '关键词', 'trim');
+        $this->form_validation->set_rules('site_description', '网站描述', 'trim');
 
         if ($this->form_validation->run() == FALSE)
         {
@@ -47,7 +47,7 @@ class Settings extends Admin_Controller {
      */
     public function verify()
     {
-        $this->form_validation->set_rules('site_topic_status', 'Default Topic Status', 'required');
+        $this->form_validation->set_rules('site_topic_status', '主题审核设置', 'required');
 
         if ($this->form_validation->run() == FALSE)
         {

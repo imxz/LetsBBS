@@ -16,10 +16,10 @@ class User extends Front_Controller {
         $this->load->helper('form');
         $this->load->library('form_validation');
 
-        $this->form_validation->set_rules('username', 'UserName', 'trim|required|alpha_numeric|min_length[3]|max_length[12]|is_unique[letsbbs_user.username]');
-        $this->form_validation->set_rules('password', 'PassWord', 'trim|required|md5');
-        $this->form_validation->set_rules('email', 'Email', 'trim|required|valid_email|is_unique[letsbbs_user.email]');
-        $this->form_validation->set_rules('captcha', 'Captcha', 'trim|callback_captcha_check');
+        $this->form_validation->set_rules('username', '用户名', 'trim|required|alpha_numeric|min_length[3]|max_length[12]|is_unique[letsbbs_user.username]');
+        $this->form_validation->set_rules('password', '密码', 'trim|required|md5');
+        $this->form_validation->set_rules('email', '邮箱', 'trim|required|valid_email|is_unique[letsbbs_user.email]');
+        $this->form_validation->set_rules('captcha', '验证码', 'trim|callback_captcha_check');
 
         if ($this->form_validation->run() == FALSE)
         {
@@ -72,7 +72,7 @@ class User extends Front_Controller {
     public function captcha_check($cap)
     {
         if ($cap!=$this->session->userdata('captcha')) {
-            $this->form_validation->set_message('captcha_check', 'Please input the correct captcha.');
+            $this->form_validation->set_message('captcha_check', '%s 输入不正确.');
             return FALSE;
         } else {
             return TRUE;
@@ -97,9 +97,9 @@ class User extends Front_Controller {
         $this->load->helper('form');
         $this->load->library('form_validation');
 
-        $this->form_validation->set_rules('username', 'UserName', 'trim|required');
-        $this->form_validation->set_rules('password', 'PassWord', 'trim|required|md5');
-        $this->form_validation->set_rules('captcha', 'Captcha', 'trim|callback_captcha_check');
+        $this->form_validation->set_rules('username', '用户名', 'trim|required');
+        $this->form_validation->set_rules('password', '密码', 'trim|required|md5');
+        $this->form_validation->set_rules('captcha', '验证码', 'trim|callback_captcha_check');
 
         if ($this->form_validation->run() == FALSE)
         {
