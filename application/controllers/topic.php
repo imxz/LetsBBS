@@ -11,17 +11,28 @@ class Topic extends Front_Controller {
     public function index()
     {
         $this->load->model('node_m');
-        $where = array('a.status' => 1);
+        if ($this->session->userdata('top_show_node') && $this->session->userdata('top_show_node') != 'all') {
+            $where = array('a.status' => 1, 'a.nid' => $this->session->userdata('top_show_node'));
+        } else {
+            $where = array('a.status' => 1);
+        }
         $data=$this->topic_m->get_topic_recent($where, 1, 20, 'recent', 2);
 
         $where = array('a.addtime >' => time()-86400*30, 'a.status' => 1);
         $hot_data=$this->topic_m->get_topic_recent($where, 1, 15, 'recent', 2, 'view');
 
         $data['nodes']=$this->node_m->get_nodes(array('featured' => 1));
+        $data['tnodes']=$this->node_m->get_nodes(array('topshow' => 1));
         $data['site_title'] = '欢迎';
         $data['hot_topics'] = $hot_data['topics'];
 
         $this->load->view('topic_list', $data);
+    }
+
+    public function show($node)
+    {
+        $this->session->set_userdata('top_show_node', $node);
+        $this->index();
     }
 
     /**

@@ -7,6 +7,20 @@
                     <div class="panel-heading">
                         <h3 class="panel-title"><?php echo $site_welcome_msg;?></h3>
                     </div>
+                    <ul class="list-group">
+                        <li class="list-group-item list-tnode">
+                            <?php
+                            echo '<a href="'.base_url('topic/show/all').'" class="btn btn-default btn-sm" role="button">全部</a>';
+                            foreach ($tnodes[0] as $node) {
+                                if ($this->session->userdata('top_show_node')==$node['nid']) {
+                                    $addclass = ' topshow';
+                                }else{
+                                    $addclass = '';
+                                }
+                                echo '<a href="'.base_url('topic/show/'.$node['nid']).'" class="btn btn-default btn-sm'.$addclass.'" role="button">'.$node['nname'].'</a>';
+                            }?>
+                        </li>
+                    </ul>
                     <div class="panel-body">
                         <ul class="media-list">
                             <?php foreach ($topics as $topic) : ?>

@@ -7,6 +7,8 @@ class Update extends Front_Controller {
         parent::__construct();
     }
 
+    // node  topshow
+
     public function index()
     {
         $this->load->view('welcome_message');

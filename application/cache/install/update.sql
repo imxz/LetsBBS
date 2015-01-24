@@ -1,0 +1,1 @@
+ALTER TABLE `letsbbs_node` ADD `topshow` INT(11) NOT NULL DEFAULT '0' AFTER `featured`;

@@ -46,6 +46,16 @@
                                 </div>
                             </div>
                             <div class="form-group">
+                                <label for="topshow" class="col-sm-2 control-label">首页置顶</label>
+                                <div class="col-sm-10">
+                                    <select class="form-control" id="topshow" name="topshow">
+                                        <option value="0">不在首页置顶显示</option>
+                                        <option value="1">在首页置顶显示</option>
+                                    </select>
+                                    <script>document.getElementById("topshow").value="<?php echo $editnode['topshow']; ?>"; </script>
+                                </div>
+                            </div>
+                            <div class="form-group">
                                 <label for="keywords" class="col-sm-2 control-label">关键字</label>
                                 <div class="col-sm-10">
                                     <input type="text" class="form-control" id="keywords" name="keywords" value="<?php echo $editnode['keywords'] ?>">

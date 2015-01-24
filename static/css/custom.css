@@ -70,6 +70,19 @@ body {
     margin: 3px;
 }
 
+.list-tnode{
+    padding: 3px 8px;
+}
+
+.list-tnode .btn-default{
+    border-color: #fff;
+}
+
+.topshow{
+    color: #fff;
+    background-color: #5bc0de;
+}
+
 blockquote p {
     font-size: 14px;
     font-weight: normal;
