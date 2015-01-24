@@ -31,6 +31,22 @@ class Node_M extends CI_Model {
     }
 
     /**
+     * 获取普通排列的nodes
+     * @return  关联数组
+     */
+    public function get_normal_nodes($where = NULL)
+    {
+        if ($where!=NULL) {
+            $this->db->where($where);
+        }
+
+        $query = $this->db->get('letsbbs_node');
+        $this->db->order_by('nid','desc');
+        $nodes = $query->result_array();
+        return $nodes;
+    }
+
+    /**
      * 根据nid获取node信息
      * @param   $nid node的id
      * @return       关联数组
