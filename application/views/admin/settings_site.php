@@ -41,6 +41,12 @@
                                 </div>
                             </div>
                             <div class="form-group">
+                                <label for="site_introduction" class="col-sm-2 control-label">网站简介</label>
+                                <div class="col-sm-10">
+                                    <textarea class="form-control" id="site_introduction" name="site_introduction" rows="3"><?php echo $site_introduction; ?></textarea>
+                                </div>
+                            </div>
+                            <div class="form-group">
                                 <label for="site_analysis" class="col-sm-2 control-label">统计代码</label>
                                 <div class="col-sm-10">
                                     <textarea class="form-control" id="site_analysis" name="site_analysis" rows="3"><?php echo $site_analysis; ?></textarea>

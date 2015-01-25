@@ -93,6 +93,7 @@ INSERT INTO `letsbbs_option` (`oid`, `oname`, `ovalue`) VALUES
 (2, 'site_subtitle', '简约开源的轻社区'),
 (3, 'site_welcome_msg', '欢迎访问 Let\'sBBS'),
 (4, 'site_keywords', 'Let\'sBBS'),
-(5, 'site_description', '<p>欢迎访问 Let\'sBBS ！<p/><p>Let\'sBBS 是一个简约开源的轻社区程序。<p/>'),
-(6, 'site_analysis', ''),
-(7, 'site_topic_status', '1');
+(5, 'site_description', 'Let\'sBBS 是一个简约开源的轻社区程序。'),
+(6, 'site_introduction', '<p>欢迎访问 Let\'sBBS ！<p/><p>Let\'sBBS 是一个简约开源的轻社区程序。<p/>'),
+(7, 'site_analysis', ''),
+(8, 'site_topic_status', '1');

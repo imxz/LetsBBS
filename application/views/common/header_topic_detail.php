@@ -8,6 +8,29 @@
     <link href="<?php echo base_url('static/css/custom.css');?>" rel="stylesheet">
     <link rel="shortcut icon" href="<?php echo base_url('static/img/favicon.png');?>">
 
+    <!-- 样式文件 -->
+    <link rel="stylesheet" href="<?php echo base_url('static/editor/themes/default/css/umeditor.min.css');?>">
+    <!-- 引用jquery -->
+    <script src="<?php echo base_url('static/editor/third-party/jquery.min.js');?>"></script>
+    <!-- 配置文件 -->
+    <script type="text/javascript" src="<?php echo base_url('static/editor/umeditor.config.js');?>"></script>
+    <!-- 编辑器源码文件 -->
+    <script type="text/javascript" src="<?php echo base_url('static/editor/umeditor.min.js');?>"></script>
+    <!-- 语言包文件 -->
+    <script type="text/javascript" src="<?php echo base_url('static/editor/lang/zh-cn/zh-cn.js');?>"></script>
+    <!-- 实例化编辑器代码 -->
+    <script type="text/javascript">
+    $(function(){
+        if (document.body.clientWidth > 720) {
+            window.um = UM.getEditor('content');
+        }else{
+            window.um = UM.getEditor('content', {
+            toolbar: ['']
+        });
+        };
+    });
+    </script>
+
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -15,9 +38,8 @@
       <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
 
-    <title><?php echo $site_name;?> | <?php echo $site_subtitle;?></title>
-    <meta name="keywords" content="<?php echo $site_keywords;?>">
-    <meta name="description" content="<?php echo $site_description;?>">
+    <title><?php echo $site_title;?> | <?php echo $site_name;?></title>
+    <meta name="description" content="<?php echo $topic['nname'];?> - <?php echo $topic['username'];?> - <?php echo mb_strimwidth(strip_tags($topic['content']), 0, 240, '...');?>">
 </head>
 <body>
     <nav class="navbar navbar-default" role="navigation">

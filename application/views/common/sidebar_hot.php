@@ -4,7 +4,7 @@
                         <h3 class="panel-title">你好<?php if ($this->session->userdata('username')) { echo '，'.$this->session->userdata('username');}?></h3>
                     </div>
                     <div class="panel-body">
-                        <?php echo $site_description;?>
+                        <?php echo $site_introduction;?>
                     </div>
                     <div class="panel-footer">
                         <?php if ($this->session->userdata('username')) : ?>

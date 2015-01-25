@@ -1,4 +1,4 @@
-<?php include 'common/header_editor.php';?>
+<?php include 'common/header_topic_detail.php';?>
 
     <div class="container">
         <div class="row">
