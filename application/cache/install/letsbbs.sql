@@ -96,4 +96,7 @@ INSERT INTO `letsbbs_option` (`oid`, `oname`, `ovalue`) VALUES
 (5, 'site_description', 'Let\'sBBS 是一个简约开源的轻社区程序。'),
 (6, 'site_introduction', '<p>欢迎访问 Let\'sBBS ！<p/><p>Let\'sBBS 是一个简约开源的轻社区程序。<p/>'),
 (7, 'site_analysis', ''),
-(8, 'site_topic_status', '1');
+(8, 'site_topic_status', '1'),
+(9, 'site_user_number', '1'),
+(10, 'site_topic_number', '0'),
+(11, 'site_comment_number', '0');
