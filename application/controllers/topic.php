@@ -126,6 +126,8 @@ class Topic extends Front_Controller {
 
             //更新用户发表帖子数量
             $this->db->set('topic', 'topic+1', FALSE)->where('uid', $this->session->userdata('uid'))->update('letsbbs_user');
+            //更新网站统计信息 主题
+            $this->db->set('ovalue', 'ovalue+1', FALSE)->where('oname', 'site_topic_number')->update('letsbbs_option');
             redirect('topic/'.$insert_id);
         }
     }

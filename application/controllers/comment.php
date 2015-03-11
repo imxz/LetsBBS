@@ -92,6 +92,9 @@ class Comment extends Front_Controller {
             $this->db->set('notice', 'notice+1', FALSE)->where('uid', $topic['uid'])->update('letsbbs_user');
         }
 
+        //更新网站统计信息 回复
+        $this->db->set('ovalue', 'ovalue+1', FALSE)->where('oname', 'site_comment_number')->update('letsbbs_option');
+
         //跳转到原帖子
         redirect('topic/'.$this->input->post('tid').'#Reply'.$updatedata['comment']);
     }

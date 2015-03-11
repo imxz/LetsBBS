@@ -40,6 +40,8 @@ class User extends Front_Controller {
 
             $this->user_m->reg($data);
             $this->user_m->login($data);
+            //更新网站统计信息 注册用户
+            $this->db->set('ovalue', 'ovalue+1', FALSE)->where('oname', 'site_user_number')->update('letsbbs_option');
             redirect();
         }
     }
