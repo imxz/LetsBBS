@@ -131,6 +131,52 @@ class User_M extends CI_Model {
 
         return $data;
     }
+
+    /**
+     * 判断某用户是否关注了某个用户
+     * @param    $uid 用户id
+     * @return boolean      是否关注
+     */
+    public function is_user_followed($uid)
+    {
+        $this->db->where('fuid', $uid);
+        $this->db->where('myuid', $this->session->userdata('uid'));
+        $query = $this->db->get('letsbbs_user_follow');
+        return $query->num_rows();
+    }
+
+    public function get_user_followed()
+    {
+        $this->db->where('myuid', $this->session->userdata('uid'));
+        $query = $this->db->get('letsbbs_user_follow');
+        return $query->result_array();
+    }
+
+    /**
+     * 添加关注
+     * @param   $uid 用户id
+     */
+    public function follow($uid)
+    {
+        $data = array(
+            'fuid' => $uid,
+            'myuid' => $this->session->userdata('uid'),
+            'addtime' => time()
+            );
+
+        return $this->db->insert('letsbbs_user_follow', $data);
+    }
+
+    /**
+     * 取消关注
+     * @param   $uid 用户id
+     */
+    public function unfollow($uid)
+    {
+        $this->db->where('fuid', $uid);
+        $this->db->where('myuid', $this->session->userdata('uid'));
+        return $this->db->delete('letsbbs_user_follow');
+    }
 }
 
 /* End of file user_m.php */

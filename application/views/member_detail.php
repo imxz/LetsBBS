@@ -9,6 +9,7 @@
                             <img class="img-rounded img-responsive" src="<?php echo base_url($user['avatar'].'big.png');?>" alt="<?php echo $user['username'].'_avatar';?>">
                         </div>
                         <div class="col-md-10">
+                            <a href="<?php echo $follow_link;?>" class="btn btn-default btn-sm pull-right" role="button"><?php echo $follow_status;?></a>
                             <h4><?php echo $user['username'];?></h4>
                             <p class="text-muted"><small><?php echo $user['username'];?>是第<?php echo $user['uid'];?>号会员，加入于<?php echo date('Y-m-d H:i',$user['regtime']);?></small></p>
                             <p>签名：<?php echo $user['signature'];?></p>

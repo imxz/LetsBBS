@@ -37,6 +37,8 @@ class Node extends Front_Controller {
             $data['site_title'] = '暂无主题';
         }
 
+        $data['node_name'] = $data['site_title'];
+
         //当前节点的收藏情况
         $data['follow_status'] = '加入收藏';
         $data['follow_link'] = base_url('node/follow/'.$nid);
@@ -49,7 +51,7 @@ class Node extends Front_Controller {
         if ($page>1) {
             $data['site_title'] .= ' '.$page.'/'.$data['num_pages'];
         }
-        $this->load->view('node_topic_recent', $data);
+        $this->load->view('topic_node_list', $data);
     }
 
     /**

@@ -10,8 +10,6 @@
                     <ul class="list-group">
                         <li class="list-group-item list-tnode">
                             <?php
-                            echo '<a href="'.base_url('topic/show/all').'" class="btn btn-default btn-sm" role="button">全部</a>';
-                            echo '<a href="'.base_url('topic/show/nodes').'" class="btn btn-default btn-sm" role="button">节点收藏</a>';
                             foreach ($tnodes as $node) {
                                 if ($this->session->userdata('top_show_node')==$node['nid']) {
                                     $addclass = ' topshow';
@@ -19,6 +17,28 @@
                                     $addclass = '';
                                 }
                                 echo '<a href="'.base_url('topic/show/'.$node['nid']).'" class="btn btn-default btn-sm'.$addclass.'" role="button">'.$node['nname'].'</a>';
+                            }
+
+                            $addclass_all = '';
+                            $addclass_nodes = '';
+                            $addclass_users = '';
+                            switch ($this->session->userdata('top_show_node')) {
+                                case 'all':
+                                    $addclass_all = ' topshow';
+                                    break;
+                                case 'nodes':
+                                    $addclass_nodes = ' topshow';
+                                    break;
+                                case 'users':
+                                    $addclass_users = ' topshow';
+                                    break;
+                                default:
+                                    break;
+                            }
+                            echo '<a href="'.base_url('topic/show/all').'" class="btn btn-default btn-sm'.$addclass_all.'" role="button">全部</a>';
+                            if ($this->session->userdata('username')) {
+                                echo '<a href="'.base_url('topic/show/nodes').'" class="btn btn-default btn-sm'.$addclass_nodes.'" role="button">节点收藏</a>';
+                                echo '<a href="'.base_url('topic/show/users').'" class="btn btn-default btn-sm'.$addclass_users.'" role="button">特别关注</a>';
                             }?>
                         </li>
                     </ul>

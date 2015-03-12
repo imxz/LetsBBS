@@ -23,6 +23,14 @@ class Member extends Front_Controller {
         $comments=$this->comment_m->get_comments_recent($where, 1 ,15 ,'member/'.$username.'/comment', 4);
         $data=array_merge($user, $topics, $comments);
 
+        //当前用户的特别关注情况
+        $data['follow_status'] = '加入特别关注';
+        $data['follow_link'] = base_url('member/follow/'.$user['user']['uid']);
+        if ($this->session->userdata('uid') && $this->user_m->is_user_followed($user['user']['uid'])) {
+            $data['follow_status'] = '取消特别关注';
+            $data['follow_link'] = base_url('member/unfollow/'.$user['user']['uid']);
+        }
+
         $data['site_title'] = $username;
         $this->load->view('member_detail',$data);
     }
@@ -40,7 +48,7 @@ class Member extends Front_Controller {
         $data=array_merge($user, $topics);
 
         $data['site_title'] = $username . '创建的主题';
-        $this->load->view('member_topic',$data);
+        $this->load->view('member_topic_list',$data);
     }
 
     /**
@@ -56,7 +64,41 @@ class Member extends Front_Controller {
         $data=array_merge($user, $comments);
 
         $data['site_title'] = $username . '添加的回复';
-        $this->load->view('member_comment',$data);
+        $this->load->view('member_comment_list',$data);
+    }
+
+    /**
+     * 添加收藏
+     * @param   $uid 节点id
+     */
+    public function follow($uid)
+    {
+        $this->load->helper('auth');
+        is_login_exit("注册用户请先登录");
+
+        $this->user_m->follow($uid);
+
+        //更新用户表
+        $this->db->set('user_follow', 'user_follow+1', FALSE)->where('uid', $this->session->userdata('uid'))->update('letsbbs_user');
+
+        redirect($this->input->server('HTTP_REFERER'));
+    }
+
+    /**
+     * 取消收藏
+     * @param   $uid 节点id
+     */
+    public function unfollow($uid)
+    {
+        $this->load->helper('auth');
+        is_login_exit("注册用户请先登录");
+
+        $this->user_m->unfollow($uid);
+
+        //更新用户表
+        $this->db->set('user_follow', 'user_follow-1', FALSE)->where('uid', $this->session->userdata('uid'))->update('letsbbs_user');
+
+        redirect($this->input->server('HTTP_REFERER'));
     }
 }
 

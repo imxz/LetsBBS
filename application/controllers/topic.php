@@ -24,11 +24,16 @@ class Topic extends Front_Controller {
                     foreach ($nodes as $node) {
                         $node_id[] = $node['nid'];
                     }
-                    $where_in['range'] = $node_id;
+                    $where_in['range'] = (count($node_id) > 0) ? $node_id : array('0');
                     break;
                 case 'users':
+                    $this->load->model('user_m');
+                    $users = $this->user_m->get_user_followed();
+                    foreach ($users as $user) {
+                        $user_id[] = $user['fuid'];
+                    }
                     $where_in['type'] = 'a.uid';
-                    $where_in['range'] = array('1', '2');
+                    $where_in['range'] = (count($user_id) > 0) ? $user_id : array('0');
                     break;
                 default:
                     $where = array('a.status' => 1, 'a.nid' => $this->session->userdata('top_show_node'));
@@ -62,13 +67,42 @@ class Topic extends Front_Controller {
     public function recent($page = 1)
     {
         $where = array('a.status' => 1);
-        $data=$this->topic_m->get_topic_recent($where, NULL, $page, 20, 'recent', 2);
+        $where_in = NULL;
+        if ($this->session->userdata('top_show_node')) {
+            switch ($this->session->userdata('top_show_node')) {
+                case 'all':
+                    break;
+                case 'nodes':
+                    $this->load->model('node_m');
+                    $where_in['type'] = 'a.nid';
+                    $nodes = $this->node_m->get_node_followed();
+                    foreach ($nodes as $node) {
+                        $node_id[] = $node['nid'];
+                    }
+                    $where_in['range'] = (count($node_id) > 0) ? $node_id : array('0');
+                    break;
+                case 'users':
+                    $this->load->model('user_m');
+                    $users = $this->user_m->get_user_followed();
+                    foreach ($users as $user) {
+                        $user_id[] = $user['fuid'];
+                    }
+                    $where_in['type'] = 'a.uid';
+                    $where_in['range'] = (count($user_id) > 0) ? $user_id : array('0');
+                    break;
+                default:
+                    $where = array('a.status' => 1, 'a.nid' => $this->session->userdata('top_show_node'));
+                    break;
+            }
+        }
+
+        $data=$this->topic_m->get_topic_recent($where, $where_in, $page, 20, 'recent', 2);
 
         if ($page>1) {
             $data['site_title'] = '最近的主题 '.$page.'/'.$data['num_pages'];
         }
 
-        $this->load->view('topic_recent', $data);
+        $this->load->view('topic_recent_list', $data);
     }
 
     /**
@@ -116,7 +150,6 @@ class Topic extends Front_Controller {
         else
         {
             //form success
-            $this->load->model('node_m');
             $node = $this->node_m->get_node_byid($this->input->post('nid'));
             if (!$node) {
                 $string='
