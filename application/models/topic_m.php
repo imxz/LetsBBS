@@ -65,7 +65,7 @@ class Topic_M extends CI_Model {
      * @param   $pagesize 每页条数
      * @return            关联数组
      */
-    public function get_topic_list($where, $page, $pagesize, $order)
+    public function get_topic_list($where, $where_in, $page, $pagesize, $order)
     {
         $this->db->select('a.*, b.username, b.avatar, c.username as rname, d.nname');
         $this->db->from('letsbbs_topic a');
@@ -75,6 +75,9 @@ class Topic_M extends CI_Model {
 
         if ($where!=NULL) {
             $this->db->where($where);
+        }
+        if ($where_in!=NULL) {
+            $this->db->where_in($where_in['type'], $where_in['range']);
         }
         $this->db->order_by($order,'desc');
         $this->db->limit($pagesize, ($page - 1) * $pagesize);
@@ -88,10 +91,13 @@ class Topic_M extends CI_Model {
      * @param   $where    附加条件 格式为关联数组，NULL返回所有
      * @return       条目数量
      */
-    public function count_items($where)
+    public function count_items($where, $where_in)
     {
         if ($where!=NULL) {
             $this->db->where($where);
+        }
+        if ($where_in!=NULL) {
+            $this->db->where_in($where_in['type'], $where_in['range']);
         }
         return $this->db->count_all_results('letsbbs_topic a');
     }
@@ -105,11 +111,11 @@ class Topic_M extends CI_Model {
      * @param    $uri_segment 分页数字在哪个段
      * @return         数组 分页和列表数据
      */
-    public function get_topic_recent($where, $page = 1, $pagesize=15, $url='', $uri_segment=2, $order='replytime')
+    public function get_topic_recent($where, $where_in, $page = 1, $pagesize=15, $url='', $uri_segment=2, $order='replytime')
     {
         $this->load->library('pagination');
         $config['base_url'] = base_url($url);
-        $config['total_rows'] = $this->count_items($where);
+        $config['total_rows'] = $this->count_items($where, $where_in);
         $config['use_page_numbers'] = TRUE;
         $config['display_pages'] = FALSE;
         $config['first_link'] = FALSE;
@@ -127,7 +133,7 @@ class Topic_M extends CI_Model {
         $this->pagination->initialize($config);
 
         $data['pagination']=$this->pagination->create_links();
-        $data['topics']=$this->get_topic_list($where, $page, $pagesize, $order);
+        $data['topics']=$this->get_topic_list($where, $where_in, $page, $pagesize, $order);
         $data['num_pages'] = ceil($config['total_rows'] / $pagesize);
         return $data;
     }

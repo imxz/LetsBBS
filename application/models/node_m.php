@@ -78,6 +78,52 @@ class Node_M extends CI_Model {
         $this->db->where('nid', $nid);
         return $this->db->update('letsbbs_node', $data);
     }
+
+    /**
+     * 判断某用户是否收藏了某个节点
+     * @param    $nid 节点id
+     * @return boolean      是否收藏
+     */
+    public function is_node_followed($nid)
+    {
+        $this->db->where('nid', $nid);
+        $this->db->where('uid', $this->session->userdata('uid'));
+        $query = $this->db->get('letsbbs_node_follow');
+        return $query->num_rows();
+    }
+
+    public function get_node_followed()
+    {
+        $this->db->where('uid', $this->session->userdata('uid'));
+        $query = $this->db->get('letsbbs_node_follow');
+        return $query->result_array();
+    }
+
+    /**
+     * 添加收藏
+     * @param   $nid 节点id
+     */
+    public function follow($nid)
+    {
+        $data = array(
+            'nid' => $nid,
+            'uid' => $this->session->userdata('uid'),
+            'addtime' => time()
+            );
+
+        return $this->db->insert('letsbbs_node_follow', $data);
+    }
+
+    /**
+     * 取消收藏
+     * @param   $nid 节点id
+     */
+    public function unfollow($nid)
+    {
+        $this->db->where('nid', $nid);
+        $this->db->where('uid', $this->session->userdata('uid'));
+        return $this->db->delete('letsbbs_node_follow');
+    }
 }
 
 /* End of file node_m.php */

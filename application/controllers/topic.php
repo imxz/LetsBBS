@@ -11,15 +11,35 @@ class Topic extends Front_Controller {
     public function index()
     {
         $this->load->model('node_m');
-        if ($this->session->userdata('top_show_node') && $this->session->userdata('top_show_node') != 'all') {
-            $where = array('a.status' => 1, 'a.nid' => $this->session->userdata('top_show_node'));
-        } else {
-            $where = array('a.status' => 1);
-        }
-        $data=$this->topic_m->get_topic_recent($where, 1, 20, 'recent', 2);
 
-        $where = array('a.addtime >' => time()-86400*30, 'a.status' => 1);
-        $hot_data=$this->topic_m->get_topic_recent($where, 1, 15, 'recent', 2, 'view');
+        $where = array('a.status' => 1);
+        $where_in = NULL;
+        if ($this->session->userdata('top_show_node')) {
+            switch ($this->session->userdata('top_show_node')) {
+                case 'all':
+                    break;
+                case 'nodes':
+                    $where_in['type'] = 'a.nid';
+                    $nodes = $this->node_m->get_node_followed();
+                    foreach ($nodes as $node) {
+                        $node_id[] = $node['nid'];
+                    }
+                    $where_in['range'] = $node_id;
+                    break;
+                case 'users':
+                    $where_in['type'] = 'a.uid';
+                    $where_in['range'] = array('1', '2');
+                    break;
+                default:
+                    $where = array('a.status' => 1, 'a.nid' => $this->session->userdata('top_show_node'));
+                    break;
+            }
+        }
+
+        $data=$this->topic_m->get_topic_recent($where, $where_in, 1, 20, 'recent', 2);
+
+        $where = array('a.addtime >' => time()-86400*90, 'a.status' => 1);
+        $hot_data=$this->topic_m->get_topic_recent($where, NULL, 1, 15, 'recent', 2, 'view');
 
         $data['nodes']=$this->node_m->get_nodes(array('featured' => 1));
         $data['tnodes']=$this->node_m->get_normal_nodes(array('topshow' => 1));
@@ -42,7 +62,7 @@ class Topic extends Front_Controller {
     public function recent($page = 1)
     {
         $where = array('a.status' => 1);
-        $data=$this->topic_m->get_topic_recent($where, $page, 20, 'recent', 2);
+        $data=$this->topic_m->get_topic_recent($where, NULL, $page, 20, 'recent', 2);
 
         if ($page>1) {
             $data['site_title'] = '最近的主题 '.$page.'/'.$data['num_pages'];

@@ -11,6 +11,7 @@
                         <li class="list-group-item list-tnode">
                             <?php
                             echo '<a href="'.base_url('topic/show/all').'" class="btn btn-default btn-sm" role="button">全部</a>';
+                            echo '<a href="'.base_url('topic/show/nodes').'" class="btn btn-default btn-sm" role="button">节点收藏</a>';
                             foreach ($tnodes as $node) {
                                 if ($this->session->userdata('top_show_node')==$node['nid']) {
                                     $addclass = ' topshow';

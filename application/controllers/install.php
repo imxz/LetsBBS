@@ -27,7 +27,7 @@ class Install extends CI_Controller {
      */
     public function deal()
     {
-        $this->load->view('install_deal');
+        $this->load->view('install/install_deal');
     }
 
     /**
@@ -63,7 +63,7 @@ class Install extends CI_Controller {
         $data['environment'] = $environment;
         $data['filemod'] = $filemod;
         $data['do_next'] = $do_next;
-        $this->load->view('install_check', $data);
+        $this->load->view('install/install_check', $data);
     }
 
     /**
@@ -190,7 +190,7 @@ class Install extends CI_Controller {
         $this->load->helper('form');
 
         if (!$this->input->post('dbhost')){
-            $this->load->view('install_process');
+            $this->load->view('install/install_process');
         } else {
             $dbhost = $this->input->post('dbhost');
             $dbuser = $this->input->post('dbuser');
@@ -232,7 +232,7 @@ class Install extends CI_Controller {
             $this->user_m->reg($admin);
             $this->user_m->login($admin);
 
-            $this->load->view('install_done');
+            $this->load->view('install/install_done');
         }
     }
 

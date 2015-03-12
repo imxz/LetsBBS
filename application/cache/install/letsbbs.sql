@@ -14,7 +14,9 @@ CREATE TABLE IF NOT EXISTS `letsbbs_user` (
   `topic` bigint(20) unsigned NOT NULL DEFAULT '0',
   `reply` bigint(20) unsigned NOT NULL DEFAULT '0',
   `notice` bigint(20) unsigned NOT NULL DEFAULT '0',
-  `follower` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `node_follow` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `user_follow` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `topic_follow` bigint(20) unsigned NOT NULL DEFAULT '0',
   `regtime` int(10) unsigned NOT NULL DEFAULT '0',
   `lastlogin` int(10) unsigned NOT NULL DEFAULT '0',
   `lastpost` int(10) unsigned NOT NULL DEFAULT '0',
@@ -100,3 +102,13 @@ INSERT INTO `letsbbs_option` (`oid`, `oname`, `ovalue`) VALUES
 (9, 'site_user_number', '1'),
 (10, 'site_topic_number', '0'),
 (11, 'site_comment_number', '0');
+
+DROP TABLE IF EXISTS `letsbbs_node_follow`;
+CREATE TABLE IF NOT EXISTS `letsbbs_node_follow` (
+  `nfid` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `nid` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `uid` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `addtime` int(10) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`nfid`),
+  KEY `uid` (`uid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
