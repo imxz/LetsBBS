@@ -201,7 +201,8 @@ class Install extends CI_Controller {
             $admin = array(
                 'username' => $this->input->post('username'),
                 'password' => md5($this->input->post('password')),
-                'group_id' => 1
+                'group_id' => 1,
+                'regtime' => time()
                 );
 
             //再次检查数据库信息是否正确
