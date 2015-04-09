@@ -32,15 +32,7 @@
                 </div>
                 <div class="panel panel-default">
                     <center class="panel-body">
-                        <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-                        <!-- letsbbs_250250 -->
-                        <ins class="adsbygoogle"
-                        style="display:inline-block;width:250px;height:250px"
-                        data-ad-client="ca-pub-4735276994183361"
-                        data-ad-slot="9733081542"></ins>
-                        <script>
-                        (adsbygoogle = window.adsbygoogle || []).push({});
-                        </script>
+                        <p>这里是预设的广告位，在 application/views/common/sidebar_common.php 文件中修改。广告宽度为250px。</p>
                     </center>
                 </div>
                 <div class="panel panel-default">

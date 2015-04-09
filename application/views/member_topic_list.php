@@ -36,7 +36,7 @@
                 </div><!-- /.topics -->
             </div><!-- /.col-md-8 -->
 
-<?php include 'common/sidebar.php';?>
+<?php include 'common/sidebar_common.php';?>
 
         </div><!-- /.row -->
     </div><!-- /.container -->

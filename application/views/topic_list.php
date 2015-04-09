@@ -101,7 +101,7 @@
                 </div><!-- /.node list -->
             </div><!-- /.col-md-8 -->
 
-<?php include 'common/sidebar_hot.php';?>
+<?php include 'common/sidebar_home.php';?>
 
         </div><!-- /.row -->
     </div><!-- /.container -->
