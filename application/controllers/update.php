@@ -5,6 +5,17 @@ class Update extends Front_Controller {
     public function __construct()
     {
         parent::__construct();
+
+        if (is_file(FCPATH.'application/views/install/update.lock')) {
+            $string='
+            <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+            <script>
+            alert("更新程序已经锁定，如果重新更新请删除application/views/install/update.lock文件");
+            top.location="'.base_url().'";
+            </script>
+            ';
+            exit($string);
+        }
     }
 
     public function index()
@@ -34,6 +45,11 @@ class Update extends Front_Controller {
     public function process()
     {
         $this->_updateTables();
+
+        sleep(2);
+        //写禁止再次更新的文件
+        file_put_contents(FCPATH.'application/views/install/update.lock', time());
+
         $string='
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <script>

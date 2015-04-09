@@ -9,7 +9,7 @@ class Install extends CI_Controller {
             $string='
             <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
             <script>
-            alert("安装程序已经锁定，如果重新安装请删除application/cache/install/install.lock文件");
+            alert("安装程序已经锁定，如果重新安装请删除application/views/install/install.lock文件");
             top.location="'.base_url().'";
             </script>
             ';
