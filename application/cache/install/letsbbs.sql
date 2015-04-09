@@ -122,3 +122,13 @@ CREATE TABLE IF NOT EXISTS `letsbbs_user_follow` (
   PRIMARY KEY (`ufid`),
   KEY `myuid` (`myuid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+DROP TABLE IF EXISTS `letsbbs_topic_follow`;
+CREATE TABLE IF NOT EXISTS `letsbbs_topic_follow` (
+  `tfid` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `tid` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `uid` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `addtime` int(10) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`tfid`),
+  KEY `uid` (`uid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;

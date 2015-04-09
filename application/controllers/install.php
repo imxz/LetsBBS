@@ -5,7 +5,7 @@ class Install extends CI_Controller {
     public function __construct()
     {
         parent::__construct();
-        if (is_file(FCPATH.'application/cache/install/install.lock')) {
+        if (is_file(FCPATH.'application/views/install/install.lock')) {
             $string='
             <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
             <script>
@@ -223,7 +223,7 @@ class Install extends CI_Controller {
             $this->_createTables($dbhost, $dbuser, $dbpsw, $dbname, $dbprefix);
 
             //写禁止再次安装的文件
-            file_put_contents(FCPATH.'application/cache/install/install.lock', time());
+            file_put_contents(FCPATH.'application/views/install/install.lock', time());
             sleep(3);
 
             //添加管理员
@@ -287,7 +287,7 @@ class Install extends CI_Controller {
             $string='
             <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
             <script>
-            alert("创建数据表失败，请重试式！");
+            alert("创建数据表失败，请重试！");
             top.location="'.base_url('install').'";
             </script>
             ';

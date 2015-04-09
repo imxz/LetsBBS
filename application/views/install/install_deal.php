@@ -53,7 +53,7 @@
                             </center>
                     </div>
                     <center class="panel-footer">
-                        Copyright © 2014 <a href="http://letsbbs.com">Let'sBBS</a>. All rights reserved.
+                        Copyright © 2015 <a href="http://letsbbs.com">Let'sBBS</a>. All rights reserved.
                     </center>
                 </div>
             </div>

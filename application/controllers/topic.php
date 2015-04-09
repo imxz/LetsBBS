@@ -35,6 +35,14 @@ class Topic extends Front_Controller {
                     $where_in['type'] = 'a.uid';
                     $where_in['range'] = (count($user_id) > 0) ? $user_id : array('0');
                     break;
+                case 'topics':
+                    $topics = $this->topic_m->get_topic_followed();
+                    foreach ($topics as $topic) {
+                        $topic_id[] = $topic['tid'];
+                    }
+                    $where_in['type'] = 'a.tid';
+                    $where_in['range'] = (count($topic_id) > 0) ? $topic_id : array('0');
+                    break;
                 default:
                     $where = array('a.status' => 1, 'a.nid' => $this->session->userdata('top_show_node'));
                     break;
@@ -117,6 +125,15 @@ class Topic extends Front_Controller {
         $data['topic']=$this->topic_m->get_topic_detail($tid);
         $data['comments']=$this->comment_m->get_comments_bytid($tid);
         $data['site_title'] = $data['topic']['title'];
+
+        //当前用户对主题的收藏情况
+        $data['follow_status'] = '加入收藏';
+        $data['follow_link'] = base_url('topic/follow/'.$tid);
+        if ($this->topic_m->is_user_followed($this->session->userdata('uid'), $tid)) {
+            $data['follow_status'] = '取消收藏';
+            $data['follow_link'] = base_url('topic/unfollow/'.$tid);
+        }
+
         $this->load->view('topic_detail', $data);
 
         //更新浏览计数
@@ -183,6 +200,46 @@ class Topic extends Front_Controller {
             $this->db->set('ovalue', 'ovalue+1', FALSE)->where('oname', 'site_topic_number')->update('letsbbs_option');
             redirect('topic/'.$insert_id);
         }
+    }
+
+    /**
+     * 添加收藏
+     * @param   $tid 帖子id
+     */
+    public function follow($tid)
+    {
+        $this->load->helper('auth');
+        is_login_exit("注册用户请先登录");
+
+        $this->topic_m->follow($tid);
+
+        //更新用户表
+        $this->db->set('topic_follow', 'topic_follow+1', FALSE)->where('uid', $this->session->userdata('uid'))->update('letsbbs_user');
+
+        //更新显示的收藏数
+        $this->session->set_userdata('topic_follow', $this->session->userdata('topic_follow')+1);
+
+        redirect($this->input->server('HTTP_REFERER'));
+    }
+
+    /**
+     * 取消收藏
+     * @param   $tid 帖子id
+     */
+    public function unfollow($tid)
+    {
+        $this->load->helper('auth');
+        is_login_exit("注册用户请先登录");
+
+        $this->topic_m->unfollow($tid);
+
+        //更新用户表
+        $this->db->set('topic_follow', 'topic_follow-1', FALSE)->where('uid', $this->session->userdata('uid'))->update('letsbbs_user');
+
+        //更新显示的收藏数
+        $this->session->set_userdata('topic_follow', $this->session->userdata('topic_follow')-1);
+
+        redirect($this->input->server('HTTP_REFERER'));
     }
 }
 

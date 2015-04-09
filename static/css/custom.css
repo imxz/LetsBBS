@@ -86,3 +86,30 @@ blockquote p {
     font-size: 14px;
     font-weight: normal;
 }
+
+.username{
+    margin-left: 65px;
+    margin-bottom: 25px;
+    height: 48px;
+    line-height: 48px;
+    font-size: 20px;
+}
+
+.username a, .user-panel a{
+    color: #444;
+}
+
+.user-panel a:hover{
+    text-decoration: none;
+}
+
+.big-font{
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.side-border{
+    border-right:1px solid #ddd;
+    border-left:1px solid #ddd;
+}

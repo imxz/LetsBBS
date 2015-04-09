@@ -137,6 +137,60 @@ class Topic_M extends CI_Model {
         $data['num_pages'] = ceil($config['total_rows'] / $pagesize);
         return $data;
     }
+
+    /**
+     * 添加收藏
+     * @param   $tid 帖子id
+     */
+    public function follow($tid)
+    {
+        $data = array(
+            'tid' => $tid,
+            'uid' => $this->session->userdata('uid'),
+            'addtime' => time()
+            );
+
+        return $this->db->insert('letsbbs_topic_follow', $data);
+    }
+
+    /**
+     * 取消收藏
+     * @param   $tid 用户id
+     */
+    public function unfollow($tid)
+    {
+        $this->db->where('tid', $tid);
+        $this->db->where('uid', $this->session->userdata('uid'));
+        return $this->db->delete('letsbbs_topic_follow');
+    }
+
+    /**
+     * 判断某用户是否关注了主题
+     * @param    $uid 用户id
+     * @return boolean      是否关注
+     */
+    public function is_user_followed($uid, $tid)
+    {
+        if (!$uid) {
+            return 0;
+        }
+
+        $this->db->where('uid', $uid);
+        $this->db->where('tid', $tid);
+        $query = $this->db->get('letsbbs_topic_follow');
+        return $query->num_rows();
+    }
+
+    /**
+     * 获得当前用户收藏的所有帖子id
+     * @return 关联数组
+     */
+    public function get_topic_followed()
+    {
+        $this->db->where('uid', $this->session->userdata('uid'));
+        $query = $this->db->get('letsbbs_topic_follow');
+        return $query->result_array();
+    }
 }
 
 /* End of file topic_m.php */

@@ -33,6 +33,10 @@ class User_M extends CI_Model {
                 $this->session->set_userdata('group_id', $user['group_id']);
                 $this->session->set_userdata('notification', $user['notice']);
                 $this->session->set_userdata('is_active', $user['is_active']);
+                $this->session->set_userdata('avatar', $user['avatar']);
+                $this->session->set_userdata('node_follow', $user['node_follow']);
+                $this->session->set_userdata('user_follow', $user['user_follow']);
+                $this->session->set_userdata('topic_follow', $user['topic_follow']);
                 return TRUE;
             } else {
                 return FALSE;

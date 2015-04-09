@@ -69,6 +69,9 @@ class Node extends Front_Controller {
         //更新用户表
         $this->db->set('node_follow', 'node_follow+1', FALSE)->where('uid', $this->session->userdata('uid'))->update('letsbbs_user');
 
+        //更新显示的收藏数
+        $this->session->set_userdata('node_follow', $this->session->userdata('node_follow')+1);
+
         redirect($this->input->server('HTTP_REFERER'));
     }
 
@@ -86,6 +89,9 @@ class Node extends Front_Controller {
 
         //更新用户表
         $this->db->set('node_follow', 'node_follow-1', FALSE)->where('uid', $this->session->userdata('uid'))->update('letsbbs_user');
+
+        //更新显示的收藏数
+        $this->session->set_userdata('node_follow', $this->session->userdata('node_follow')-1);
 
         redirect($this->input->server('HTTP_REFERER'));
     }

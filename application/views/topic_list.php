@@ -22,6 +22,7 @@
                             $addclass_all = '';
                             $addclass_nodes = '';
                             $addclass_users = '';
+                            $addclass_topics = '';
                             switch ($this->session->userdata('top_show_node')) {
                                 case 'all':
                                     $addclass_all = ' topshow';
@@ -32,12 +33,16 @@
                                 case 'users':
                                     $addclass_users = ' topshow';
                                     break;
+                                case 'topics':
+                                    $addclass_topics = ' topshow';
+                                    break;
                                 default:
                                     break;
                             }
                             echo '<a href="'.base_url('topic/show/all').'" class="btn btn-default btn-sm'.$addclass_all.'" role="button">全部</a>';
                             if ($this->session->userdata('username')) {
                                 echo '<a href="'.base_url('topic/show/nodes').'" class="btn btn-default btn-sm'.$addclass_nodes.'" role="button">节点收藏</a>';
+                                echo '<a href="'.base_url('topic/show/topics').'" class="btn btn-default btn-sm'.$addclass_topics.'" role="button">主题收藏</a>';
                                 echo '<a href="'.base_url('topic/show/users').'" class="btn btn-default btn-sm'.$addclass_users.'" role="button">特别关注</a>';
                             }?>
                         </li>

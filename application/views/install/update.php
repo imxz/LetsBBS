@@ -15,29 +15,34 @@
       <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
 
-    <title>安装向导 | Powered By Let'sBBS</title>
+    <title>升级向导 | Powered By Let'sBBS</title>
 </head>
 <body>
     <div class="container">
         <div class="row">
             <div class="col-md-10 col-md-offset-1" style="margin-top:40px;">
                 <div class="panel panel-default">
-                    <div class="panel-heading">安装向导 >> 安装完成</div>
+                    <div class="panel-heading">升级向导</div>
                     <div class="panel-body">
-                        <center>
-                            <br><br>
-                            <h3>安装完成！</h3>
-                            <br><br>
-                            <div class="row">
-                                <div class="col-md-3 col-md-offset-3">
-                                    <a class="btn btn-primary btn-block" href="<?php echo base_url();?>" role="button">点击访问前台</a>
-                                </div>
-                                <div class="col-md-3">
-                                    <a class="btn btn-primary btn-block" href="<?php echo base_url('admin');?>" role="button">点击进入后台</a>
-                                </div>
-                            </div>
+                            <p><b>Let'sBBS软件升级说明</b></p>
+
                             <br>
-                        </center>
+                            <p>本升级包仅支持Let'sBBS版本 v0.1.2 build-141205 到 v0.2.0 build-150408 的升级。</p>
+
+                            <br>
+                            <p><b>升级说明</b></p>
+                            <p>1. 请务必仔细阅读官网的升级提示和说明。</p>
+                            <p>2. 请务必在升级前备份数据库和网站相关文件数据，以免造成损失。</p>
+                            <p>3. 您在自行操作升级的过程中造成的任何后果由您自行承担，与Let'sBBS无关。</p>
+                            <p>4. 点击“同意并马上升级”表示您已完全知悉并同意此升级说明，网站将立即开始升级。</p>
+
+                            <br>
+                            <p class="pull-right">Let'sBBS 2015.04.08</p>
+                            <div class="clearfix"></div>
+                            <center>
+                                <br>
+                                <a class="btn btn-primary btn-block" href="<?php echo base_url('update/process');?>" role="button">同意并马上升级</a>
+                            </center>
                     </div>
                     <center class="panel-footer">
                         Copyright © 2015 <a href="http://letsbbs.com">Let'sBBS</a>. All rights reserved.
