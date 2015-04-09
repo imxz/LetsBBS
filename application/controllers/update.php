@@ -30,7 +30,7 @@ class Update extends Front_Controller {
     {
         $sql = file_get_contents(FCPATH.'application/cache/install/update.sql');
         //$sql = str_replace('prefix_', $dbprefix, $sql);
-        if (!@mysqli_connect($dbhost, $dbuser, $dbpsw, $dbname)->multi_query($sql)) {
+        if (!@mysqli_connect($this->db->hostname, $this->db->username, $this->db->password, $this->db->database)->multi_query($sql)) {
             $string='
             <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
             <script>
