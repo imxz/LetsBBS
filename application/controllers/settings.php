@@ -100,6 +100,9 @@ class Settings extends Front_Controller {
 
                 $this->user_m->update($this->session->userdata('uid'), $data);
 
+                //更新显示的头像
+                $this->session->set_userdata('avatar', $data['avatar']);
+
                 //删除tmp下的原图
                 unlink($img_array['full_path']);
                 redirect('settings/avatar');
