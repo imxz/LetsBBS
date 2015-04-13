@@ -113,7 +113,7 @@ class Topic extends Admin_Controller {
             $data = array(
                 'nid' => $this->input->post('nid'),
                 'title' => htmlspecialchars($this->input->post('title')),
-                'content' => $this->input->post('content')
+                'content' => $this->input->post('content', true)
             );
 
             $this->topic_m->update($tid, $data);

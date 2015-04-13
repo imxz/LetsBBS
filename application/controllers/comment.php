@@ -37,7 +37,7 @@ class Comment extends Front_Controller {
             'tid' => $this->input->post('tid'),
             'uid' => $this->session->userdata('uid'),
             'replytime' => time(),
-            'content' => $this->input->post('content')
+            'content' => $this->input->post('content', true)
             );
         $comment_id=$this->comment_m->add($data);
 

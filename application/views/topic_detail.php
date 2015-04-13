@@ -12,6 +12,8 @@
                             <span>By <a href="<?php echo base_url('member/'.$topic['username']);?>"><?php echo $topic['username']; ?></a></span>&nbsp;•&nbsp;
                             <span><?php echo date('Y-m-d H:i',$topic['addtime']);?></span>&nbsp;•&nbsp;
                             <span><?php echo $topic['view'];?>次点击</span>
+                            <?php if ($this->session->userdata('group_id')==1) {
+                                echo '&nbsp;•&nbsp;&nbsp;<span><a href="'. base_url('admin/topic/edit/'.$topic['tid']) . '">编辑</a></span>';}?>
                         </small>
                     </div>
                     <div class="panel-body">

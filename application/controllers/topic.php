@@ -186,7 +186,7 @@ class Topic extends Front_Controller {
                 'nid' => $this->input->post('nid'),
                 'uid' => $this->session->userdata('uid'),
                 'title' => htmlspecialchars($this->input->post('title')),
-                'content' => $this->input->post('content'),
+                'content' => $this->input->post('content', true),
                 'addtime' => time(),
                 'replytime' => time(),
                 'status' => $site_settings['site_topic_status']
