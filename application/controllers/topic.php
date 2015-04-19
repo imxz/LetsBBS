@@ -182,11 +182,14 @@ class Topic extends Front_Controller {
             $this->load->model('site_m');
             $site_settings = $this->site_m->get_site_settings();
 
+            $this->load->library('XssHtml');
+            $this->xsshtml->inputHtml($this->input->post('content'));
+
             $data = array(
                 'nid' => $this->input->post('nid'),
                 'uid' => $this->session->userdata('uid'),
                 'title' => htmlspecialchars($this->input->post('title')),
-                'content' => $this->input->post('content', true),
+                'content' => $this->xsshtml->getHtml(),
                 'addtime' => time(),
                 'replytime' => time(),
                 'status' => $site_settings['site_topic_status']

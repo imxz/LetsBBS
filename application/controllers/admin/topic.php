@@ -110,10 +110,13 @@ class Topic extends Admin_Controller {
         else
         {
             //form success
+            $this->load->library('XssHtml');
+            $this->xsshtml->inputHtml($this->input->post('content'));
+
             $data = array(
                 'nid' => $this->input->post('nid'),
                 'title' => htmlspecialchars($this->input->post('title')),
-                'content' => $this->input->post('content', true)
+                'content' => $this->xsshtml->getHtml()
             );
 
             $this->topic_m->update($tid, $data);

@@ -33,11 +33,14 @@ class Comment extends Front_Controller {
         }
 
         //添加评论
+        $this->load->library('XssHtml');
+        $this->xsshtml->inputHtml($this->input->post('content'));
+
         $data = array(
             'tid' => $this->input->post('tid'),
             'uid' => $this->session->userdata('uid'),
             'replytime' => time(),
-            'content' => $this->input->post('content', true)
+            'content' => $this->xsshtml->getHtml()
             );
         $comment_id=$this->comment_m->add($data);
 
