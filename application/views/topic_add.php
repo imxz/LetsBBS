@@ -1,4 +1,4 @@
-<?php include 'common/header_editor.php';?>
+<?php include 'common/header_common.php';?>
 
     <div class="container">
         <div class="row">
@@ -33,7 +33,7 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <script id="content" name="content" type="text/plain" style="width:100%;height:300px;"><?php echo htmlspecialchars_decode(set_value('content'));?></script>
+                                <textarea id="content" name="content" style="width:100%;height:300px;"><?php echo set_value('content');?></textarea>
                             </div>
                             <button type="submit" class="btn btn-default">提交</button>
                         </form>

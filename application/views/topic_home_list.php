@@ -106,6 +106,6 @@
         </div><!-- /.row -->
     </div><!-- /.container -->
 
-<?php include 'common/footer.php';?>
+<?php include 'common/footer_common.php';?>
 </body>
 </html>

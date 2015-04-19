@@ -55,21 +55,17 @@
                         <?php echo form_open('comment/add', array('class' => 'form-horizontal', 'role' => 'form', 'onsubmit' => 'return validate_form(this)'));?>
                             <script>
                                 function addReply(username) {
-                                    var UMeditor = UM.getEditor('content');
-                                    if (UMeditor.hasContents())
-                                        UMeditor.setContent('@'+username+'&nbsp;', true);
-                                    else
-                                        UMeditor.setContent('@'+username+'&nbsp;');
+                                    window.editor.insertHtml('@'+username+'&nbsp;');
                                 }
 
                                 function validate_form(thisform){
-                                    if (UM.getEditor('content').getPlainTxt().length<2){
+                                    if (window.editor.text().length<2){
                                         alert('回复内容不得少于2字');
                                         return false;
                                     }
                                 }
                             </script>
-                            <script id="content" name="content" type="text/plain" style="width:100%;height:200px;"></script>
+                            <textarea id="content" name="content" style="width:100%;height:200px;"><?php echo set_value('content');?></textarea>
                             <div class="form-group">
                                 <div class="col-sm-12">
                                     <input type="hidden" id="tid" name="tid" value="<?php echo $topic['tid']; ?>">

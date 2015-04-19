@@ -59,7 +59,7 @@ class Topic extends Front_Controller {
         $data['site_title'] = '欢迎';
         $data['hot_topics'] = $hot_data['topics'];
 
-        $this->load->view('topic_list', $data);
+        $this->load->view('topic_home_list', $data);
     }
 
     public function show($node)

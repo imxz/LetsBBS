@@ -1,4 +1,4 @@
-<?php include 'common/header_editor.php';?>
+<?php include 'common/header.php';?>
 
     <div class="container">
         <div class="row">
@@ -34,7 +34,7 @@
                                 <script>document.getElementById("nid").value="<?php echo $topic['nid'];?>";</script>
                             </div>
                             <div class="form-group">
-                                <script id="content" name="content" type="text/plain" style="width:100%;height:300px;"><?php echo $topic['content'];?></script>
+                                <textarea id="content" name="content" style="width:100%;height:300px;"><?php echo $topic['content'];?></textarea>
                             </div>
                             <button type="submit" class="btn btn-default">提交</button>
                         </form>

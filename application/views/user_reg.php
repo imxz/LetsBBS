@@ -1,4 +1,4 @@
-<?php include 'common/header.php';?>
+<?php include 'common/header_common.php';?>
 
     <div class="container">
         <div class="row">
@@ -61,6 +61,6 @@
         </div><!-- /.row -->
     </div><!-- /.container -->
 
-<?php include 'common/footer.php';?>
+<?php include 'common/footer_common.php';?>
 </body>
 </html>
