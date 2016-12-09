@@ -9,7 +9,9 @@ https://raw.githubusercontent.com/imxz/LetsBBS/master/demo1.png
 https://raw.githubusercontent.com/imxz/LetsBBS/master/demo2.png
 https://raw.githubusercontent.com/imxz/LetsBBS/master/demo3.png
 
-###安装说明
+-----------------
+
+##安装说明
 
 ####前期准备
 1.下载本程序的源代码。
@@ -34,3 +36,37 @@ https://raw.githubusercontent.com/imxz/LetsBBS/master/demo3.png
 4.安装完成，点击进入后台，进行必要的网站基本信息设置和节点设置，您的网站即安装完成。
 
 至此，安装完成，enjoy yourself !
+
+##NGINX下的配置示例
+<pre>
+server
+	{
+		listen 80;
+		server_name domain.com;
+		index index.php index.html;
+		root  /home/wwwroot/letsbbs.com;
+
+		location /
+			{
+				try_files $uri $uri/ /index.php;
+			}
+
+		location ~ [^/]\.php(/|$)
+			{
+				fastcgi_pass  unix:/tmp/php-cgi.sock;
+				include fastcgi.conf;
+			}
+
+		location ~ .*\.(gif|jpg|jpeg|png|bmp|swf)$
+			{
+				expires      30d;
+			}
+
+		location ~ .*\.(js|css)?$
+			{
+				expires      12h;
+			}
+
+		access_log off;
+	}
+</pre>
