@@ -3,6 +3,12 @@ Let'sBBS
 
 **Let'sBBS 是一个简约开源的轻社区程序。**
 
+demo网站已经撤下，需要感受一下的话，可以看看这几张截图。
+
+https://raw.githubusercontent.com/imxz/LetsBBS/master/demo1.png
+https://raw.githubusercontent.com/imxz/LetsBBS/master/demo2.png
+https://raw.githubusercontent.com/imxz/LetsBBS/master/demo3.png
+
 ###安装说明
 
 ####前期准备
