@@ -9,6 +9,8 @@ https://raw.githubusercontent.com/imxz/LetsBBS/master/demo1.png
 https://raw.githubusercontent.com/imxz/LetsBBS/master/demo2.png
 https://raw.githubusercontent.com/imxz/LetsBBS/master/demo3.png
 
+![avatar](demo1.png)
+
 -----------------
 
 ##安装说明
