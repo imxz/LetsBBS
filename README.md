@@ -5,11 +5,11 @@ Let'sBBS
 
 demo网站已经撤下，需要感受一下的话，可以看看这几张截图。
 
-https://raw.githubusercontent.com/imxz/LetsBBS/master/demo1.png
-https://raw.githubusercontent.com/imxz/LetsBBS/master/demo2.png
-https://raw.githubusercontent.com/imxz/LetsBBS/master/demo3.png
+![demo1](demo1.png)
 
-![avatar](demo1.png)
+![demo2](demo2.png)
+
+![demo3](demo3.png)
 
 -----------------
 
