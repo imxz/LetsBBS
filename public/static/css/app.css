@@ -1,0 +1,13 @@
+body{background:#eef1f4 url('/static/img/grid.png') repeat;color:#27313a}
+.navbar-brand{font-weight:700}
+.panel{background:#fff;border:1px solid #dfe4e8;border-radius:.45rem;box-shadow:0 1px 2px #0000000a}
+.topic-row{padding:1rem;border-bottom:1px solid #edf0f2}
+.topic-row:last-child{border-bottom:0}
+.topic-title{font-size:1.05rem;text-decoration:none}
+.meta{font-size:.82rem;color:#7a8791}
+.avatar{width:42px;height:42px;border-radius:50%;object-fit:cover;background:#667;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700}
+.post-body{overflow-wrap:anywhere}
+.post-body img{max-width:100%;height:auto}
+.sidebar .list-group-item{border-left:0;border-right:0}
+.captcha{height:48px;border:1px solid #ccd3da}
+@media(max-width:767.98px){.sidebar{margin-top:1rem}.topic-row{padding:.8rem}.navbar-nav{flex-direction:row;flex-wrap:wrap}}

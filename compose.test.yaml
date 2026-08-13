@@ -1,0 +1,46 @@
+name: letsbbs-test
+
+services:
+  mysql-test:
+    image: mysql:8.4.11
+    environment:
+      MYSQL_DATABASE: letsbbs_test
+      MYSQL_USER: letsbbs_test
+      MYSQL_PASSWORD: letsbbs_test_password
+      MYSQL_ROOT_PASSWORD: test_root_password
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_0900_ai_ci", "--default-time-zone=+00:00", "--sql-mode=STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"]
+    tmpfs: [/var/lib/mysql]
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u$$MYSQL_USER -p$$MYSQL_PASSWORD --silent"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  test:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      target: test
+    depends_on:
+      mysql-test:
+        condition: service_healthy
+    environment:
+      CI_ENVIRONMENT: testing
+      RUN_MYSQL_TESTS: "1"
+      database.default.hostname: mysql-test
+      database.default.database: letsbbs_test
+      database.default.username: letsbbs_test
+      database.default.password: letsbbs_test_password
+      database.default.DBDriver: MySQLi
+      database.tests.hostname: mysql-test
+      database.tests.database: letsbbs_test
+      database.tests.username: letsbbs_test
+      database.tests.password: letsbbs_test_password
+      database.tests.DBDriver: MySQLi
+    command:
+      - sh
+      - -c
+      - >-
+        CI_ENVIRONMENT=development php spark migrate --all
+        && CI_ENVIRONMENT=development php spark db:seed InitialSeeder
+        && php vendor/bin/phpunit
