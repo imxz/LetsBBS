@@ -4,6 +4,8 @@ namespace App\Controllers;
 
 final class Member extends BaseController
 {
+    private const PAGE_SIZE = 20;
+
     private function member(string $username): array
     {
         $row = db_connect()->table('users u')->select('u.id,u.username,u.created_at,p.*')->join('user_profiles p', 'p.user_id=u.id', 'left')->where('u.username', $username)->get()->getRowArray();
@@ -19,15 +21,17 @@ final class Member extends BaseController
     }
     public function topics(string $username, int $page = 1)
     {
+        $page = max(1, $page);
         $m = $this->member($username);
-        $rows = db_connect()->table('topics')->where(['user_id' => $m['id'],'status' => 'published'])->orderBy('id', 'DESC')->limit(20, (max(1, $page) - 1) * 20)->get()->getResultArray();
-        return view('member/activity', ['member' => $m,'rows' => $rows,'kind' => 'topics']);
+        $rows = db_connect()->table('topics')->where(['user_id' => $m['id'],'status' => 'published'])->orderBy('id', 'DESC')->limit(self::PAGE_SIZE + 1, ($page - 1) * self::PAGE_SIZE)->get()->getResultArray();
+        return view('member/activity', ['member' => $m,'rows' => array_slice($rows, 0, self::PAGE_SIZE),'kind' => 'topics','page' => $page,'hasNext' => count($rows) > self::PAGE_SIZE]);
     }
     public function comments(string $username, int $page = 1)
     {
+        $page = max(1, $page);
         $m = $this->member($username);
-        $rows = db_connect()->table('comments c')->select('c.*,t.title')->join('topics t', 't.id=c.topic_id')->where(['c.user_id' => $m['id'],'c.status' => 'published','t.status' => 'published'])->orderBy('c.id', 'DESC')->limit(20, (max(1, $page) - 1) * 20)->get()->getResultArray();
-        return view('member/activity', ['member' => $m,'rows' => $rows,'kind' => 'comments']);
+        $rows = db_connect()->table('comments c')->select('c.*,t.title')->join('topics t', 't.id=c.topic_id')->where(['c.user_id' => $m['id'],'c.status' => 'published','t.status' => 'published'])->orderBy('c.id', 'DESC')->limit(self::PAGE_SIZE + 1, ($page - 1) * self::PAGE_SIZE)->get()->getResultArray();
+        return view('member/activity', ['member' => $m,'rows' => array_slice($rows, 0, self::PAGE_SIZE),'kind' => 'comments','page' => $page,'hasNext' => count($rows) > self::PAGE_SIZE]);
     }
     public function settings()
     {
@@ -40,9 +44,15 @@ final class Member extends BaseController
     public function avatar()
     {
         try {
-            $file = $this->request->getFile('avatar') ?? $this->request->getFile('avatarInputFile');
-            $path = (new \App\Services\ImageStorage())->store($file, 'avatars', 512, 2 * 1024 * 1024);
-            db_connect()->table('user_profiles')->where('user_id', auth()->id())->update(['avatar' => $path,'updated_at' => gmdate('Y-m-d H:i:s')]);
+            $file = $this->request->getFile('avatar');
+            $storage = new \App\Services\ImageStorage();
+            $path = $storage->store($file, 'avatars', 512, 2 * 1024 * 1024);
+            $db = db_connect();
+            $oldPath = $db->table('user_profiles')->select('avatar')->where('user_id', auth()->id())->get()->getRowArray()['avatar'] ?? null;
+            $db->table('user_profiles')->where('user_id', auth()->id())->update(['avatar' => $path,'updated_at' => gmdate('Y-m-d H:i:s')]);
+            if (is_string($oldPath)) {
+                $storage->delete($oldPath, 'avatars');
+            }
             return redirect()->back()->with('success', '头像已更新。');
         } catch (\Throwable $e) {
             return redirect()->back()->with('error', $e->getMessage());

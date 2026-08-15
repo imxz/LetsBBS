@@ -6,6 +6,8 @@ use CodeIgniter\Model;
 
 final class ForumModel extends Model
 {
+    public const PAGE_SIZE = 20;
+
     protected $table = 'topics';
     protected $returnType = 'array';
     protected $allowedFields = [];
@@ -14,7 +16,14 @@ final class ForumModel extends Model
         $b = $this->db->table('topics t')->select('t.*,n.name node_name,u.username,p.avatar')->join('nodes n', 'n.id=t.node_id')->join('users u', 'u.id=t.user_id')->join('user_profiles p', 'p.user_id=t.user_id', 'left')->where('t.status', 'published');
         if ($nodeId) {
             $b->where('t.node_id', $nodeId);
-        }return $b->orderBy($recent ? 't.created_at' : 't.last_activity_at', 'DESC')->limit(20, ($page - 1) * 20)->get()->getResultArray();
+        }
+
+        return $b
+            ->orderBy($recent ? 't.created_at' : 't.last_activity_at', 'DESC')
+            ->orderBy('t.id', 'DESC')
+            ->limit(self::PAGE_SIZE + 1, ($page - 1) * self::PAGE_SIZE)
+            ->get()
+            ->getResultArray();
     }
     public function nodes(): array
     {

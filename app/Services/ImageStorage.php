@@ -11,6 +11,9 @@ final class ImageStorage
 
     public function store(?UploadedFile $file, string $bucket = 'editor', int $maxDimension = 6000, int $maxBytes = 5242880): string
     {
+        if (! in_array($bucket, ['editor', 'avatars'], true)) {
+            throw new \InvalidArgumentException('无效的图片存储目录。');
+        }
         if ($file && in_array($file->getError(), [UPLOAD_ERR_INI_SIZE,UPLOAD_ERR_FORM_SIZE], true)) {
             throw new RuntimeException('图片超过大小限制。', 413);
         }
@@ -54,5 +57,24 @@ final class ImageStorage
             throw new RuntimeException('图片保存失败。');
         } @chmod($target, 0644);
         return '/uploads/' . $folder . '/' . $name;
+    }
+
+    public function delete(string $publicPath, string $bucket): void
+    {
+        if ($bucket !== 'avatars') {
+            return;
+        }
+        $prefix = '/uploads/' . $bucket . '/';
+        if (! str_starts_with($publicPath, $prefix)) {
+            return;
+        }
+        $relative = substr($publicPath, strlen('/uploads/'));
+        if (! preg_match('#\Aavatars/[a-f0-9]{40}\.(?:jpg|png|gif|webp)\z#', $relative)) {
+            return;
+        }
+        $path = FCPATH . 'uploads/' . $relative;
+        if (is_file($path)) {
+            @unlink($path);
+        }
     }
 }

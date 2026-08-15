@@ -14,10 +14,16 @@ final class FollowService
 
     public function toggleTopic(int $userId, int $topicId): bool
     {
+        if (! $this->db->table('topics')->where(['id' => $topicId, 'status' => 'published'])->countAllResults()) {
+            throw new RuntimeException('主题不存在或不可关注。');
+        }
         return $this->toggle('topic_follows', ['user_id' => $userId,'topic_id' => $topicId], 'UPDATE topics SET follower_count=GREATEST(follower_count+?,0) WHERE id=?', $topicId);
     }
     public function toggleNode(int $userId, int $nodeId): bool
     {
+        if (! $this->db->table('nodes')->where(['id' => $nodeId, 'is_active' => 1])->countAllResults()) {
+            throw new RuntimeException('节点不存在或不可关注。');
+        }
         return $this->toggle('node_follows', ['user_id' => $userId,'node_id' => $nodeId], null, $nodeId);
     }
     public function toggleUser(int $userId, int $targetId): bool
@@ -32,7 +38,7 @@ final class FollowService
             $this->db->query('UPDATE user_profiles SET following_count=GREATEST(following_count+?,0) WHERE user_id=?', [$delta,$userId]);
             $this->db->query('UPDATE user_profiles SET follower_count=GREATEST(follower_count+?,0) WHERE user_id=?', [$delta,$targetId]);
             if ($active) {
-                $this->db->table('notifications')->insert(['user_id' => $targetId,'actor_id' => $userId,'topic_id' => null,'kind' => 'follow','payload' => json_encode([]),'created_at' => gmdate('Y-m-d H:i:s')]);
+                $this->db->table('notifications')->insert(['user_id' => $targetId,'actor_id' => $userId,'topic_id' => null,'kind' => 'follow','created_at' => gmdate('Y-m-d H:i:s')]);
             }
             return $active;
         });

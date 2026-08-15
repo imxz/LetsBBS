@@ -13,7 +13,7 @@ services:
       - uploads:/var/www/html/public/uploads:ro
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/health/live"]
+      test: ["CMD", "wget", "--header=X-Forwarded-Proto: https", "-qO-", "http://127.0.0.1/health/live"]
       interval: 10s
       timeout: 3s
       retries: 5
@@ -28,6 +28,7 @@ services:
     environment:
       CI_ENVIRONMENT: production
       database.default.hostname: mysql
+      MYSQL_ROOT_PASSWORD: ""
     depends_on:
       mysql:
         condition: service_healthy
@@ -35,7 +36,7 @@ services:
       - uploads:/var/www/html/public/uploads
       - writable:/var/www/html/writable
     healthcheck:
-      test: ["CMD-SHELL", "REQUEST_URI=/health/live SCRIPT_NAME=/index.php SCRIPT_FILENAME=/var/www/html/public/index.php REQUEST_METHOD=GET cgi-fcgi -bind -connect 127.0.0.1:9000 | grep -Fq '{\"status\":\"ok\"}'"]
+      test: ["CMD-SHELL", "HTTPS=on REQUEST_URI=/health/live SCRIPT_NAME=/index.php SCRIPT_FILENAME=/var/www/html/public/index.php REQUEST_METHOD=GET cgi-fcgi -bind -connect 127.0.0.1:9000 | grep -Fq '{\"status\":\"ok\"}'"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -43,7 +44,11 @@ services:
 
   mysql:
     image: mysql:8.4.11
-    env_file: .env
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:?Set MYSQL_DATABASE in .env}
+      MYSQL_USER: ${MYSQL_USER:?Set MYSQL_USER in .env}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in .env}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env}
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_0900_ai_ci

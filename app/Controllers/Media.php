@@ -8,14 +8,6 @@ final class Media extends BaseController
 {
     public function image()
     {
-        if (!auth()->loggedIn()) {
-            return $this->response->setStatusCode(401)->setJSON(['error' => '需要登录。']);
-        }
-        try {
-            service('security')->verify($this->request);
-        } catch (\Throwable) {
-            return $this->response->setStatusCode(403)->setJSON(['error' => 'CSRF 校验失败。']);
-        }
         $profile = db_connect()->table('user_profiles')->where('user_id', auth()->id())->get()->getRowArray();
         if (($profile['is_muted'] ?? 0) == 1) {
             return $this->response->setStatusCode(403)->setJSON(['error' => '你已被禁言。']);

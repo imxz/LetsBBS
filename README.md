@@ -1,6 +1,6 @@
 # LetsBBS
 
-基于 CodeIgniter 4.7.4 的简洁中文论坛。该版本从旧 CI 2.2 站点重建，只支持全新安装，不导入旧用户、MD5 密码、帖子或上传文件。
+基于 CodeIgniter 4.7.4 的简洁中文论坛，提供主题、回复、关注、通知、内容审核、用户管理和图片上传功能。系统只支持全新安装。
 
 ## 固定运行环境
 
@@ -43,7 +43,7 @@
 
 ## 安全设计
 
-Shield 管理会话认证及 `user`/`admin` 角色。注册用户名仅允许 3–12 位小写字母和数字，密码至少 12 位；登录与注册使用一次性内存验证码和 IP 限流。全站启用会话 CSRF、HttpOnly/SameSite/Secure Cookie、CSP 和安全响应头，登录后更新会话 ID。
+Shield 管理会话认证及 `user`/`admin` 角色。注册用户名仅允许 3–12 位小写字母和数字，密码至少 12 位；登录与注册使用一次性会话验证码和 IP 限流。全站启用会话 CSRF、HttpOnly/SameSite/Secure Cookie、CSP 和安全响应头，登录后更新会话 ID。
 
 正文在入库前经 HTML Purifier 白名单清理。只允许 HTTP(S) 链接、本地 `/uploads/editor/` 图片和 `text-align`；远程图片、Base64、SVG、iframe、媒体、脚本及危险协议会被拒绝或移除。编辑器上传会验证真实 MIME、尺寸和 5 MiB 上限，解码后以随机名称重新编码。
 
@@ -67,9 +67,9 @@ php spark routes
 
 没有设置 `RUN_MYSQL_TESTS=1` 时，仅真实数据库用例会跳过；发布验收不得接受这些跳过。上线前还应确认容器健康、安装器锁定、HTTPS 与反向代理可信 IP 配置正确。
 
-## 兼容 URL
+## 公开路由
 
-保留 `/`、`/recent/{page}`、`/topic/{id}`、`/node/{id}/{page?}`、`/member/{username}`、`/notification/{page}`、`/reg`、`/login` 和设置页面。登出、关注、删除、审核、禁言均只接受 POST；旧 GET 写接口返回 405。旧 KindEditor PHP 接口、旧测试数据库接口和 `/update` 返回 404。
+主要页面包括 `/`、`/recent/{page}`、`/topic/{id}`、`/node/{id}/{page?}`、`/member/{username}`、`/notification/{page}`、`/register`、`/login` 和设置页面。登出、关注、删除、审核、禁言等状态变更只接受 POST；未声明的路径和请求方法由框架返回 404 或 405。
 
 ## License
 

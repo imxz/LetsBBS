@@ -22,7 +22,6 @@ final class Forum extends BaseController
     {
         $page = max(1, $page);
         $model = new ForumModel();
-        $topics = $model->listing($page, $nodeId, $recent);
         $nodes = $model->nodes();
         $currentNode = null;
         $nodeFollowing = false;
@@ -30,9 +29,26 @@ final class Forum extends BaseController
             if ((int) $n['id'] === $nodeId) {
                 $currentNode = $n;
             }
-        }if ($nodeId && auth()->loggedIn()) {
+        }
+        if ($nodeId !== null && $currentNode === null) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+        if ($nodeId && auth()->loggedIn()) {
             $nodeFollowing = $model->follows('node_follows', ['user_id' => auth()->id(),'node_id' => $nodeId]);
-        }return view('forum/list', ['topics' => $topics,'nodes' => $nodes,'page' => $page,'hasNext' => count($topics) === 20,'nodeId' => $nodeId,'currentNode' => $currentNode,'nodeFollowing' => $nodeFollowing,'title' => $recent ? '最新主题' : ($currentNode ? $currentNode['name'] : '主题')]);
+        }
+        $topics = $model->listing($page, $nodeId, $recent);
+        $hasNext = count($topics) > ForumModel::PAGE_SIZE;
+
+        return view('forum/list', [
+            'topics' => array_slice($topics, 0, ForumModel::PAGE_SIZE),
+            'nodes' => $nodes,
+            'page' => $page,
+            'hasNext' => $hasNext,
+            'nodeId' => $nodeId,
+            'currentNode' => $currentNode,
+            'nodeFollowing' => $nodeFollowing,
+            'title' => $recent ? '最新主题' : ($currentNode ? $currentNode['name'] : '主题'),
+        ]);
     }
     public function topic(int $id)
     {

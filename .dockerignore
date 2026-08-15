@@ -1,0 +1,16 @@
+.git
+.env
+build
+vendor/**
+writable/cache/*
+!writable/cache/index.html
+writable/debugbar/*
+!writable/debugbar/index.html
+writable/logs/*
+!writable/logs/index.html
+writable/session/*
+!writable/session/index.html
+writable/uploads/*
+!writable/uploads/index.html
+public/uploads/*
+!public/uploads/.gitignore

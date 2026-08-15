@@ -16,14 +16,10 @@ namespace Config;
 use CodeIgniter\Shield\Config\Auth as ShieldAuth;
 use CodeIgniter\Shield\Authentication\Actions\ActionInterface;
 use CodeIgniter\Shield\Authentication\AuthenticatorInterface;
-use CodeIgniter\Shield\Authentication\Authenticators\AccessTokens;
-use CodeIgniter\Shield\Authentication\Authenticators\HmacSha256;
-use CodeIgniter\Shield\Authentication\Authenticators\JWT;
 use CodeIgniter\Shield\Authentication\Authenticators\Session;
 use CodeIgniter\Shield\Authentication\Passwords\CompositionValidator;
 use CodeIgniter\Shield\Authentication\Passwords\DictionaryValidator;
 use CodeIgniter\Shield\Authentication\Passwords\NothingPersonalValidator;
-use CodeIgniter\Shield\Authentication\Passwords\PwnedValidator;
 use CodeIgniter\Shield\Authentication\Passwords\ValidatorInterface;
 use CodeIgniter\Shield\Models\UserModel;
 
@@ -120,10 +116,7 @@ class Auth extends ShieldAuth
      * @var array<string, class-string<AuthenticatorInterface>>
      */
     public array $authenticators = [
-        'tokens' => AccessTokens::class,
         'session' => Session::class,
-        'hmac' => HmacSha256::class,
-        // 'jwt'     => JWT::class,
     ];
 
     /**
@@ -147,9 +140,6 @@ class Auth extends ShieldAuth
      */
     public array $authenticationChain = [
         'session',
-        'tokens',
-        'hmac',
-        // 'jwt',
     ];
 
     /**
@@ -158,7 +148,7 @@ class Auth extends ShieldAuth
      * --------------------------------------------------------------------
      * Determines whether users can register for the site.
      */
-    public bool $allowRegistration = true;
+    public bool $allowRegistration = false;
 
     /**
      * --------------------------------------------------------------------
@@ -182,7 +172,7 @@ class Auth extends ShieldAuth
      * could be modified as the only method of login once an account
      * has been set up.
      */
-    public bool $allowMagicLinkLogins = true;
+    public bool $allowMagicLinkLogins = false;
 
     /**
      * --------------------------------------------------------------------
@@ -209,7 +199,7 @@ class Auth extends ShieldAuth
      */
     public array $sessionConfig = [
         'field' => 'user',
-        'allowRemembering' => true,
+        'allowRemembering' => false,
         'rememberCookieName' => 'remember',
         'rememberLength' => 30 * DAY,
     ];
@@ -285,7 +275,6 @@ class Auth extends ShieldAuth
      * Fields that are available to be used as credentials for login.
      */
     public array $validFields = [
-        'email',
         'username',
     ];
 

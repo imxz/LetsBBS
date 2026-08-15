@@ -15,7 +15,7 @@ RUN composer install --no-dev --no-interaction --no-progress --prefer-dist --cla
 COPY app app
 COPY public public
 COPY writable writable
-COPY spark preload.php ./
+COPY spark ./
 RUN mkdir -p writable/cache writable/logs writable/session writable/uploads public/uploads \
     && chown -R www-data:www-data writable public/uploads
 CMD ["php-fpm", "-F"]
@@ -23,5 +23,6 @@ CMD ["php-fpm", "-F"]
 FROM production AS test
 COPY tests tests
 COPY phpunit.dist.xml ./
+COPY .gitignore .dockerignore ./
 RUN composer install --no-interaction --no-progress --prefer-dist
 CMD ["php", "vendor/bin/phpunit"]

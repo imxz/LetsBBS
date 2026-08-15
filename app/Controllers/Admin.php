@@ -7,7 +7,13 @@ final class Admin extends BaseController
     public function index()
     {
         $db = db_connect();
-        return view('admin/index', ['nodes' => $db->table('nodes')->orderBy('sort_order')->get()->getResultArray(),'pending' => $db->table('topics t')->select('t.*,u.username')->join('users u', 'u.id=t.user_id')->whereIn('t.status', ['pending','hidden'])->orderBy('t.id', 'DESC')->limit(50)->get()->getResultArray(),'users' => $db->table('users u')->select('u.id,u.username,p.is_muted')->join('user_profiles p', 'p.user_id=u.id', 'left')->orderBy('u.id', 'DESC')->limit(50)->get()->getResultArray()]);
+        return view('admin/index', [
+            'nodes' => $db->table('nodes')->orderBy('sort_order')->get()->getResultArray(),
+            'pendingTopics' => $db->table('topics t')->select('t.*,u.username')->join('users u', 'u.id=t.user_id')->where('t.status', 'hidden')->orderBy('t.id', 'DESC')->limit(50)->get()->getResultArray(),
+            'pendingComments' => $db->table('comments c')->select('c.*,u.username,t.title')->join('users u', 'u.id=c.user_id')->join('topics t', 't.id=c.topic_id')->where('c.status', 'hidden')->orderBy('c.id', 'DESC')->limit(50)->get()->getResultArray(),
+            'users' => $db->table('users u')->select('u.id,u.username,p.is_muted')->join('user_profiles p', 'p.user_id=u.id', 'left')->orderBy('u.id', 'DESC')->limit(50)->get()->getResultArray(),
+            'settings' => service('siteSettings')->all(),
+        ]);
     }
     public function node()
     {
@@ -33,8 +39,10 @@ final class Admin extends BaseController
             $db->table('topics')->where('id', $id)->update(['status' => $status,'updated_at' => gmdate('Y-m-d H:i:s')]);
             if ($was !== $will) {
                 $delta = $will ? 1 : -1;
+                $now = gmdate('Y-m-d H:i:s');
                 $db->query('UPDATE nodes SET topic_count=GREATEST(topic_count+?,0) WHERE id=?', [$delta,$topic['node_id']]);
                 $db->query('UPDATE user_profiles SET topic_count=GREATEST(topic_count+?,0) WHERE user_id=?', [$delta,$topic['user_id']]);
+                (new \App\Services\ContentCounters($db))->adjustVisibleCommentsForTopic($id, $delta, $now);
             }$db->transCommit();
         } catch (\Throwable $e) {
             $db->transRollback();
@@ -58,7 +66,7 @@ final class Admin extends BaseController
         }$db = db_connect();
         $db->transException(true)->transBegin();
         try {
-            $c = $db->query('SELECT topic_id,user_id,status FROM comments WHERE id=? FOR UPDATE', [$id])->getRowArray();
+            $c = $db->query('SELECT c.topic_id,c.user_id,c.status,t.status AS topic_status FROM comments c JOIN topics t ON t.id=c.topic_id WHERE c.id=? FOR UPDATE', [$id])->getRowArray();
             if (!$c) {
                 throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
             }$was = $c['status'] === 'published';
@@ -67,8 +75,13 @@ final class Admin extends BaseController
             if ($was !== $will) {
                 $delta = $will ? 1 : -1;
                 $db->query('UPDATE topics SET comment_count=GREATEST(comment_count+?,0) WHERE id=?', [$delta,$c['topic_id']]);
-                $db->query('UPDATE user_profiles SET comment_count=GREATEST(comment_count+?,0) WHERE user_id=?', [$delta,$c['user_id']]);
-            }$db->transCommit();
+                if ($c['topic_status'] === 'published') {
+                    $db->query('UPDATE user_profiles SET comment_count=GREATEST(comment_count+?,0) WHERE user_id=?', [$delta,$c['user_id']]);
+                }
+            }
+            $now = gmdate('Y-m-d H:i:s');
+            $db->query("UPDATE topics t SET last_activity_at=GREATEST(t.created_at,COALESCE((SELECT MAX(c.created_at) FROM comments c WHERE c.topic_id=t.id AND c.status='published'),t.created_at)),updated_at=? WHERE t.id=?", [$now,$c['topic_id']]);
+            $db->transCommit();
         } catch (\Throwable $e) {
             $db->transRollback();
             throw $e;
@@ -76,9 +89,15 @@ final class Admin extends BaseController
     }
     public function settings()
     {
-        foreach (['site_name','site_description'] as $key) {
-            $value = mb_substr(trim((string) $this->request->getPost($key)), 0, 160);
-            db_connect()->table('site_settings')->replace(['setting_key' => $key,'setting_value' => json_encode($value, JSON_UNESCAPED_UNICODE),'updated_at' => gmdate('Y-m-d H:i:s')]);
-        }return redirect()->back()->with('success', '站点设置已保存。');
+        $siteName = mb_substr(trim((string) $this->request->getPost('site_name')), 0, 80);
+        if ($siteName === '') {
+            return redirect()->back()->withInput()->with('error', '站点名称不能为空。');
+        }
+        service('siteSettings')->save([
+            'site_name' => $siteName,
+            'site_description' => mb_substr(trim((string) $this->request->getPost('site_description')), 0, 160),
+        ]);
+
+        return redirect()->back()->with('success', '站点设置已保存。');
     }
 }

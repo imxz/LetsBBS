@@ -1,0 +1,4 @@
+{
+  "tinymce": {"version": "8.8.2", "package_sha256": "2d4c64d6ad33af5faf2285a5ab3db468772fa3417a5380c2c2761f70f7bfb364", "license": "GPL-2.0-or-later"},
+  "bootstrap": {"version": "5.3.8", "package_sha256": "8b02d4a7482e0f0a2b1da58f1c9c86830e96cc2f77f094f89e4681b19886bc38", "license": "MIT"}
+}

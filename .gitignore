@@ -84,7 +84,7 @@ php_errors.log
 #-------------------------
 # Composer
 #-------------------------
-vendor/
+/vendor/
 
 /public/uploads/*
 !/public/uploads/.gitignore
@@ -127,3 +127,6 @@ _modules/*
 
 /results/
 /phpunit.xml
+
+# Local Docker preview of the pre-upgrade codebase
+/.legacy-preview/

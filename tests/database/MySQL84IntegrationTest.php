@@ -79,6 +79,9 @@ final class MySQL84IntegrationTest extends CIUnitTestCase
             $this->assertSame(1, (int) $db->table('topics')->select('comment_count')->where('id', $topicId)->get()->getRow()->comment_count);
             $this->assertSame(1, (int) $db->table('user_profiles')->select('comment_count')->where('user_id', $ids[1])->get()->getRow()->comment_count);
             $this->assertSame(1, $db->table('notifications')->where(['user_id' => $ids[0],'topic_id' => $topicId,'kind' => 'comment'])->countAllResults());
+            (new \App\Services\TopicService())->delete($ids[0], $topicId, false);
+            $this->assertSame(0, (int) $db->table('user_profiles')->select('comment_count')->where('user_id', $ids[1])->get()->getRow()->comment_count);
+            $this->assertSame(0, (int) $db->table('user_profiles')->select('topic_count')->where('user_id', $ids[0])->get()->getRow()->topic_count);
             $db->table('topics')->where('id', $topicId)->delete();
         } finally {
             foreach ($ids as $id) {
@@ -106,6 +109,27 @@ final class MySQL84IntegrationTest extends CIUnitTestCase
             $this->assertSame(0, (int) $db->table('user_profiles')->select('topic_count')->where('user_id', $userId)->get()->getRow()->topic_count);
         } finally {
             $db->table('users')->where('id', $userId)->delete();
+        }
+    }
+
+    public function testTopicCreationRejectsInvalidTitleBeforeWriting(): void
+    {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('标题须为');
+        (new \App\Services\TopicService())->create(1, 1, ' ', '<p>body</p>');
+    }
+
+    public function testSiteSettingsArePersistedAndReloaded(): void
+    {
+        $settings = new \App\Services\SiteSettings();
+        $original = $settings->all();
+        try {
+            $settings->save(['site_name' => 'Test BBS', 'site_description' => 'Integration test']);
+            $reloaded = new \App\Services\SiteSettings();
+            $this->assertSame('Test BBS', $reloaded->get('site_name'));
+            $this->assertSame('Integration test', $reloaded->get('site_description'));
+        } finally {
+            $settings->save($original);
         }
     }
 }

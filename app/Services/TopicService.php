@@ -18,9 +18,18 @@ final class TopicService
         $body = $this->sanitizer->clean($html);
         if ($body === '') {
             throw new RuntimeException('正文不能为空。');
-        }$now = gmdate('Y-m-d H:i:s');
+        }
+        $title = trim($title);
+        if (mb_strlen($title) < 2 || mb_strlen($title) > 160) {
+            throw new RuntimeException('标题须为 2–160 个字符。');
+        }
+        $now = gmdate('Y-m-d H:i:s');
         return $this->transaction(function () use ($userId, $nodeId, $title, $body, $now): int {
-            $this->db->table('topics')->insert(['node_id' => $nodeId,'user_id' => $userId,'title' => trim($title),'body' => $body,'status' => 'published','last_activity_at' => $now,'created_at' => $now,'updated_at' => $now]);
+            $node = $this->db->query('SELECT id FROM nodes WHERE id=? AND is_active=1 FOR UPDATE', [$nodeId])->getRowArray();
+            if (! $node) {
+                throw new RuntimeException('节点不存在或已停用。');
+            }
+            $this->db->table('topics')->insert(['node_id' => $nodeId,'user_id' => $userId,'title' => $title,'body' => $body,'status' => 'published','last_activity_at' => $now,'created_at' => $now,'updated_at' => $now]);
             $id = (int) $this->db->insertID();
             $this->db->query('UPDATE nodes SET topic_count=topic_count+1,updated_at=? WHERE id=?', [$now,$nodeId]);
             $this->db->query('UPDATE user_profiles SET topic_count=topic_count+1,updated_at=? WHERE user_id=?', [$now,$userId]);
@@ -28,7 +37,7 @@ final class TopicService
             $this->db->query('UPDATE topics SET follower_count=1 WHERE id=?', [$id]);
             $recipients = $this->db->query('SELECT user_id FROM node_follows WHERE node_id=? AND user_id<>? UNION SELECT follower_id AS user_id FROM user_follows WHERE followed_id=? AND follower_id<>?', [$nodeId,$userId,$userId,$userId])->getResultArray();
             foreach ($recipients as $r) {
-                $this->db->table('notifications')->insert(['user_id' => $r['user_id'],'actor_id' => $userId,'topic_id' => $id,'kind' => 'topic','payload' => json_encode([]),'created_at' => $now]);
+                $this->db->table('notifications')->insert(['user_id' => $r['user_id'],'actor_id' => $userId,'topic_id' => $id,'kind' => 'topic','created_at' => $now]);
             }return $id;
         });
     }
@@ -50,7 +59,7 @@ final class TopicService
             $this->db->query('UPDATE user_profiles SET comment_count=comment_count+1,updated_at=? WHERE user_id=?', [$now,$userId]);
             $recipients = $this->db->query('SELECT user_id FROM topic_follows WHERE topic_id=? AND user_id<>?', [$topicId,$userId])->getResultArray();
             foreach ($recipients as $r) {
-                $this->db->table('notifications')->insert(['user_id' => $r['user_id'],'actor_id' => $userId,'topic_id' => $topicId,'kind' => 'comment','payload' => json_encode([]),'created_at' => $now]);
+                $this->db->table('notifications')->insert(['user_id' => $r['user_id'],'actor_id' => $userId,'topic_id' => $topicId,'kind' => 'comment','created_at' => $now]);
             }return $id;
         });
     }
@@ -62,9 +71,11 @@ final class TopicService
             if (!$topic || (!$admin && (int) $topic['user_id'] !== $actorId)) {
                 throw new RuntimeException('无权删除该主题。');
             }if ($topic['status'] === 'published') {
-                $this->db->table('topics')->where('id', $topicId)->update(['status' => 'deleted','updated_at' => gmdate('Y-m-d H:i:s')]);
+                $now = gmdate('Y-m-d H:i:s');
+                $this->db->table('topics')->where('id', $topicId)->update(['status' => 'deleted','updated_at' => $now]);
                 $this->db->query('UPDATE nodes SET topic_count=GREATEST(topic_count-1,0) WHERE id=?', [$topic['node_id']]);
                 $this->db->query('UPDATE user_profiles SET topic_count=GREATEST(topic_count-1,0) WHERE user_id=?', [$topic['user_id']]);
+                (new ContentCounters($this->db))->adjustVisibleCommentsForTopic($topicId, -1, $now);
             }
         });
     }
