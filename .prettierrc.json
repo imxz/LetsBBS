@@ -1,0 +1,23 @@
+{
+  "plugins": ["@prettier/plugin-php"],
+  "printWidth": 120,
+  "tabWidth": 4,
+  "useTabs": false,
+  "singleQuote": true,
+  "endOfLine": "lf",
+  "overrides": [
+    {
+      "files": "*.{json,jsonc,yaml,yml}",
+      "options": {
+        "tabWidth": 2
+      }
+    },
+    {
+      "files": "*.php",
+      "options": {
+        "parser": "php",
+        "phpVersion": "8.4"
+      }
+    }
+  ]
+}

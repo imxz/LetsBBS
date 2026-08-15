@@ -13,10 +13,10 @@ final class Media extends BaseController
             return $this->response->setStatusCode(403)->setJSON(['error' => '你已被禁言。']);
         }
         try {
-            $path = (new ImageStorage())->store($this->request->getFile('file'));
+            $path = new ImageStorage()->store($this->request->getFile('file'));
             return $this->response->setJSON(['location' => $path]);
         } catch (\Throwable $e) {
-            $code = in_array($e->getCode(), [413,422], true) ? $e->getCode() : 422;
+            $code = in_array($e->getCode(), [413, 422], true) ? $e->getCode() : 422;
             return $this->response->setStatusCode($code)->setJSON(['error' => $e->getMessage()]);
         }
     }

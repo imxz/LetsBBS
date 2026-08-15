@@ -1,0 +1,5 @@
+/app/Views/**/*.php
+/node_modules/
+/public/static/vendor/
+/vendor/
+/writable/

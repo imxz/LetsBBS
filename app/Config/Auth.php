@@ -33,7 +33,9 @@ class Auth extends ShieldAuth
 
     // Constants for Record Login Attempts. Do not change.
     public const RECORD_LOGIN_ATTEMPT_NONE = 0; // Do not record at all
+
     public const RECORD_LOGIN_ATTEMPT_FAILURE = 1; // Record only failures
+
     public const RECORD_LOGIN_ATTEMPT_ALL = 2; // Record all login attempts
 
     /**
@@ -138,9 +140,7 @@ class Auth extends ShieldAuth
      *
      * @var list<string>
      */
-    public array $authenticationChain = [
-        'session',
-    ];
+    public array $authenticationChain = ['session'];
 
     /**
      * --------------------------------------------------------------------
@@ -215,12 +215,7 @@ class Auth extends ShieldAuth
      */
     public array $usernameValidationRules = [
         'label' => 'Auth.username',
-        'rules' => [
-            'required',
-            'max_length[12]',
-            'min_length[3]',
-            'regex_match[/\A[a-z0-9]+\z/]',
-        ],
+        'rules' => ['required', 'max_length[12]', 'min_length[3]', 'regex_match[/\A[a-z0-9]+\z/]'],
     ];
 
     /**
@@ -234,11 +229,7 @@ class Auth extends ShieldAuth
      */
     public array $emailValidationRules = [
         'label' => 'Auth.email',
-        'rules' => [
-            'required',
-            'max_length[254]',
-            'valid_email',
-        ],
+        'rules' => ['required', 'max_length[254]', 'valid_email'],
     ];
 
     /**
@@ -274,9 +265,7 @@ class Auth extends ShieldAuth
      * --------------------------------------------------------------------
      * Fields that are available to be used as credentials for login.
      */
-    public array $validFields = [
-        'username',
-    ];
+    public array $validFields = ['username'];
 
     /**
      * --------------------------------------------------------------------
@@ -350,8 +339,9 @@ class Auth extends ShieldAuth
      */
     public int $hashMemoryCost = 65536; // PASSWORD_ARGON2_DEFAULT_MEMORY_COST;
 
-    public int $hashTimeCost = 4;   // PASSWORD_ARGON2_DEFAULT_TIME_COST;
-    public int $hashThreads = 1;   // PASSWORD_ARGON2_DEFAULT_THREADS;
+    public int $hashTimeCost = 4; // PASSWORD_ARGON2_DEFAULT_TIME_COST;
+
+    public int $hashThreads = 1; // PASSWORD_ARGON2_DEFAULT_THREADS;
 
     /**
      * --------------------------------------------------------------------

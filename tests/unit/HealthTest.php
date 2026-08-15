@@ -17,9 +17,6 @@ final class HealthTest extends CIUnitTestCase
     {
         $validation = service('validation');
         $config = new App();
-        $this->assertTrue(
-            $validation->check($config->baseURL, 'valid_url'),
-            'Configured baseURL is not a valid URL.',
-        );
+        $this->assertTrue($validation->check($config->baseURL, 'valid_url'), 'Configured baseURL is not a valid URL.');
     }
 }

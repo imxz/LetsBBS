@@ -8,9 +8,10 @@ final class Health extends BaseController
     {
         return $this->response->setJSON(['status' => 'ok']);
     }
+
     public function ready()
     {
-        if (! is_file(WRITEPATH . 'install.lock')) {
+        if (!is_file(WRITEPATH . 'install.lock')) {
             return $this->response->setStatusCode(503)->setJSON(['status' => 'not-installed']);
         }
         try {

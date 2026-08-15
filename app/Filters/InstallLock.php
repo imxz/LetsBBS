@@ -14,5 +14,6 @@ final class InstallLock implements FilterInterface
             return service('response')->setStatusCode(503)->setBody('站点尚未安装，请访问 /install。');
         }
     }
+
     public function after(RequestInterface $request, ResponseInterface $response, $arguments = null): void {}
 }

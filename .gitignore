@@ -1,132 +1,72 @@
-#-------------------------
-# Operating Specific Junk Files
-#-------------------------
+# Secrets and local environment overrides
+.env
+.env.*
+!.env.example
 
-# OS X
+# PHP / Composer dependencies and tool caches
+/vendor/
+/phpunit
+/.phpunit.cache/
+/.php-cs-fixer.cache
+
+# Node.js dependencies and logs
+/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Runtime data
+/writable/cache/*
+!/writable/cache/index.html
+/writable/debugbar/*
+!/writable/debugbar/index.html
+/writable/logs/*
+!/writable/logs/index.html
+/writable/session/*
+!/writable/session/index.html
+/writable/uploads/*
+!/writable/uploads/index.html
+/writable/install.lock
+/writable/install.state
+/public/uploads/*
+!/public/uploads/.gitignore
+php_errors.log
+
+# Test and build output
+/build/
+/coverage/
+/results/
+/phpunit.xml
+/tests/coverage*
+
+# Local previews and generated documentation
+/.legacy-preview/
+/user_guide_src/build/
+/user_guide_src/cilexer/build/
+/user_guide_src/cilexer/dist/
+/user_guide_src/cilexer/pycilexer.egg-info/
+
+# IDE settings
+.idea/
+*.iml
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+
+# OS and editor temporary files
 .DS_Store
-.AppleDouble
-.LSOverride
-
-# OS X Thumbnails
 ._*
-
-# Windows image file caches
 Thumbs.db
 ehthumbs.db
 Desktop.ini
-
-# Recycle Bin used on file shares
 $RECYCLE.BIN/
-
-# Windows Installer files
-*.cab
-*.msi
-*.msm
-*.msp
-
-# Windows shortcuts
-*.lnk
-
-# Linux
-*~
-
-# KDE directory preferences
 .directory
-
-# Linux trash folder which might appear on any partition or disk
 .Trash-*
-
-#-------------------------
-# Environment Files
-#-------------------------
-# These should never be under version control,
-# as it poses a security risk.
-.env
-.vagrant
-Vagrantfile
-
-#-------------------------
-# Temporary Files
-#-------------------------
-/writable/cache/*
-!/writable/cache/index.html
-
-/writable/logs/*
-!/writable/logs/index.html
-
-/writable/session/*
-!/writable/session/index.html
-
-/writable/uploads/*
-!/writable/uploads/index.html
-
-/writable/debugbar/*
-!/writable/debugbar/index.html
-
-php_errors.log
-
-#-------------------------
-# User Guide Temp Files
-#-------------------------
-/user_guide_src/build/*
-/user_guide_src/cilexer/build/*
-/user_guide_src/cilexer/dist/*
-/user_guide_src/cilexer/pycilexer.egg-info/*
-
-#-------------------------
-# Test Files
-#-------------------------
-/tests/coverage*
-
-# Don't save phpunit under version control.
-/phpunit
-
-#-------------------------
-# Composer
-#-------------------------
-/vendor/
-
-/public/uploads/*
-!/public/uploads/.gitignore
-
-#-------------------------
-# IDE / Development Files
-#-------------------------
-
-# Modules Testing
-_modules/*
-
-# phpenv local config
-.php-version
-
-# Jetbrains editors (PHPStorm, etc)
-.idea/
-*.iml
-
-# NetBeans
-/nbproject/
-/build/
-/nbbuild/
-/dist/
-/nbdist/
-/nbactions.xml
-/nb-configuration.xml
-/.nb-gradle/
-
-# Sublime Text
-*.tmlanguage.cache
-*.tmPreferences.cache
-*.stTheme.cache
-*.sublime-workspace
-*.sublime-project
-.phpintel
-/api/
-
-# Visual Studio Code
-.vscode/
-
-/results/
-/phpunit.xml
-
-# Local Docker preview of the pre-upgrade codebase
-/.legacy-preview/
+*~
+*.swp
+*.swo
+*.tmp
+*.bak
+*.orig

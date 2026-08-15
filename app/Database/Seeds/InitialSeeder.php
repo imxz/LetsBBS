@@ -9,13 +9,41 @@ final class InitialSeeder extends Seeder
     public function run(): void
     {
         $now = gmdate('Y-m-d H:i:s');
-        $this->db->table('nodes')->ignore(true)->insertBatch([
-            ['name' => '讨论', 'slug' => 'discussion', 'description' => '自由讨论区', 'sort_order' => 10, 'created_at' => $now, 'updated_at' => $now],
-            ['name' => '问答', 'slug' => 'questions', 'description' => '提问与互助', 'sort_order' => 20, 'created_at' => $now, 'updated_at' => $now],
-        ]);
-        $this->db->table('site_settings')->ignore(true)->insertBatch([
-            ['setting_key' => 'site_name', 'setting_value' => json_encode('LetsBBS', JSON_UNESCAPED_UNICODE), 'updated_at' => $now],
-            ['setting_key' => 'site_description', 'setting_value' => json_encode('简洁的中文论坛', JSON_UNESCAPED_UNICODE), 'updated_at' => $now],
-        ]);
+        $this->db
+            ->table('nodes')
+            ->ignore(true)
+            ->insertBatch([
+                [
+                    'name' => '讨论',
+                    'slug' => 'discussion',
+                    'description' => '自由讨论区',
+                    'sort_order' => 10,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ],
+                [
+                    'name' => '问答',
+                    'slug' => 'questions',
+                    'description' => '提问与互助',
+                    'sort_order' => 20,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ],
+            ]);
+        $this->db
+            ->table('site_settings')
+            ->ignore(true)
+            ->insertBatch([
+                [
+                    'setting_key' => 'site_name',
+                    'setting_value' => json_encode('LetsBBS', JSON_UNESCAPED_UNICODE),
+                    'updated_at' => $now,
+                ],
+                [
+                    'setting_key' => 'site_description',
+                    'setting_value' => json_encode('简洁的中文论坛', JSON_UNESCAPED_UNICODE),
+                    'updated_at' => $now,
+                ],
+            ]);
     }
 }

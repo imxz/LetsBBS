@@ -10,7 +10,7 @@ final class ContentCounters
 
     public function adjustVisibleCommentsForTopic(int $topicId, int $delta, string $now): void
     {
-        if (! in_array($delta, [-1, 1], true)) {
+        if (!in_array($delta, [-1, 1], true)) {
             throw new \InvalidArgumentException('Counter delta must be -1 or 1.');
         }
 

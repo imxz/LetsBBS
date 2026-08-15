@@ -1,0 +1,21 @@
+{
+  "private": true,
+  "scripts": {
+    "format": "npm run format:meta && npm run format:php && npm run format:views && npm run format:fixer",
+    "format:check": "npm run format:meta:check && npm run format:php:check && npm run format:views:check && npm run format:fixer:check",
+    "format:file": "node tools/format-file.mjs",
+    "format:meta": "prettier --write \".vscode/*.json\" .prettierrc.json composer.json package.json \"tools/**/*.mjs\"",
+    "format:meta:check": "prettier --check \".vscode/*.json\" .prettierrc.json composer.json package.json \"tools/**/*.mjs\"",
+    "format:php": "prettier --write \"app/**/*.php\" \"tests/**/*.php\" public/index.php",
+    "format:php:check": "prettier --check \"app/**/*.php\" \"tests/**/*.php\" public/index.php",
+    "format:views": "node tools/format-views.mjs --write",
+    "format:views:check": "node tools/format-views.mjs --check",
+    "format:fixer": "php vendor/bin/php-cs-fixer fix --using-cache=no --show-progress=none",
+    "format:fixer:check": "php vendor/bin/php-cs-fixer fix --dry-run --diff --using-cache=no --show-progress=none"
+  },
+  "devDependencies": {
+    "@prettier/plugin-php": "0.25.0",
+    "js-beautify": "2.0.3",
+    "prettier": "3.9.6"
+  }
+}

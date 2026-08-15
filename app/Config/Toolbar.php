@@ -102,9 +102,7 @@ class Toolbar extends BaseConfig
      *
      * @var list<string>
      */
-    public array $watchedDirectories = [
-        'app',
-    ];
+    public array $watchedDirectories = ['app'];
 
     /**
      * --------------------------------------------------------------------------
@@ -116,9 +114,7 @@ class Toolbar extends BaseConfig
      *
      * @var list<string>
      */
-    public array $watchedExtensions = [
-        'php', 'css', 'js', 'html', 'svg', 'json', 'env',
-    ];
+    public array $watchedExtensions = ['php', 'css', 'js', 'html', 'svg', 'json', 'env'];
 
     /**
      * --------------------------------------------------------------------------
@@ -141,7 +137,7 @@ class Toolbar extends BaseConfig
      */
     public array $disableOnHeaders = [
         'X-Requested-With' => 'xmlhttprequest', // AJAX requests
-        'HX-Request' => 'true',           // HTMX requests
-        'X-Up-Version' => null,             // Unpoly partial requests
+        'HX-Request' => 'true', // HTMX requests
+        'X-Up-Version' => null, // Unpoly partial requests
     ];
 }

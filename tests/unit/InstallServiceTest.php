@@ -21,7 +21,7 @@ final class InstallServiceTest extends CIUnitTestCase
         try {
             $this->expectException(\RuntimeException::class);
             $this->expectExceptionMessage('安装令牌错误');
-            (new InstallService())->install('wrong-token', 'admin', 'long-enough-password');
+            new InstallService()->install('wrong-token', 'admin', 'long-enough-password');
         } finally {
             $old === false ? putenv('INSTALL_TOKEN') : putenv('INSTALL_TOKEN=' . $old);
         }

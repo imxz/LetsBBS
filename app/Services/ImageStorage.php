@@ -7,14 +7,18 @@ use RuntimeException;
 
 final class ImageStorage
 {
-    private const MIMES = ['image/jpeg' => 'jpg','image/png' => 'png','image/gif' => 'gif','image/webp' => 'webp'];
+    private const MIMES = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif', 'image/webp' => 'webp'];
 
-    public function store(?UploadedFile $file, string $bucket = 'editor', int $maxDimension = 6000, int $maxBytes = 5242880): string
-    {
-        if (! in_array($bucket, ['editor', 'avatars'], true)) {
+    public function store(
+        ?UploadedFile $file,
+        string $bucket = 'editor',
+        int $maxDimension = 6000,
+        int $maxBytes = 5242880,
+    ): string {
+        if (!in_array($bucket, ['editor', 'avatars'], true)) {
             throw new \InvalidArgumentException('无效的图片存储目录。');
         }
-        if ($file && in_array($file->getError(), [UPLOAD_ERR_INI_SIZE,UPLOAD_ERR_FORM_SIZE], true)) {
+        if ($file && in_array($file->getError(), [UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE], true)) {
             throw new RuntimeException('图片超过大小限制。', 413);
         }
         if (!$file || !$file->isValid()) {
@@ -24,7 +28,7 @@ final class ImageStorage
             throw new RuntimeException('图片超过大小限制。', 413);
         }
         $tmp = $file->getTempName();
-        $mime = (new \finfo(FILEINFO_MIME_TYPE))->file($tmp);
+        $mime = new \finfo(FILEINFO_MIME_TYPE)->file($tmp);
         if (!isset(self::MIMES[$mime])) {
             throw new RuntimeException('仅支持 JPEG、PNG、GIF 和 WebP。', 422);
         }
@@ -45,17 +49,21 @@ final class ImageStorage
         $ext = self::MIMES[$mime];
         $name = bin2hex(random_bytes(20)) . '.' . $ext;
         $target = $absolute . '/' . $name;
-        if (in_array($mime, ['image/png','image/gif','image/webp'], true)) {
+        if (in_array($mime, ['image/png', 'image/gif', 'image/webp'], true)) {
             imagealphablending($image, false);
             imagesavealpha($image, true);
         }
         $ok = match ($mime) {
-            'image/jpeg' => imagejpeg($image, $target, 88),'image/png' => imagepng($image, $target, 6),'image/gif' => imagegif($image, $target),'image/webp' => imagewebp($image, $target, 86)
+            'image/jpeg' => imagejpeg($image, $target, 88),
+            'image/png' => imagepng($image, $target, 6),
+            'image/gif' => imagegif($image, $target),
+            'image/webp' => imagewebp($image, $target, 86),
         };
         imagedestroy($image);
         if (!$ok) {
             throw new RuntimeException('图片保存失败。');
-        } @chmod($target, 0644);
+        }
+        @chmod($target, 0644);
         return '/uploads/' . $folder . '/' . $name;
     }
 
@@ -65,11 +73,11 @@ final class ImageStorage
             return;
         }
         $prefix = '/uploads/' . $bucket . '/';
-        if (! str_starts_with($publicPath, $prefix)) {
+        if (!str_starts_with($publicPath, $prefix)) {
             return;
         }
         $relative = substr($publicPath, strlen('/uploads/'));
-        if (! preg_match('#\Aavatars/[a-f0-9]{40}\.(?:jpg|png|gif|webp)\z#', $relative)) {
+        if (!preg_match('#\Aavatars/[a-f0-9]{40}\.(?:jpg|png|gif|webp)\z#', $relative)) {
             return;
         }
         $path = FCPATH . 'uploads/' . $relative;

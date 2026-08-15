@@ -10,14 +10,17 @@ final class Forum extends BaseController
     {
         return $this->listing(1, null, false);
     }
+
     public function recent(int $page = 1)
     {
         return $this->listing($page, null, true);
     }
+
     public function node(int $id, int $page = 1)
     {
         return $this->listing($page, $id, false);
     }
+
     private function listing(int $page, ?int $nodeId, bool $recent)
     {
         $page = max(1, $page);
@@ -34,7 +37,7 @@ final class Forum extends BaseController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
         }
         if ($nodeId && auth()->loggedIn()) {
-            $nodeFollowing = $model->follows('node_follows', ['user_id' => auth()->id(),'node_id' => $nodeId]);
+            $nodeFollowing = $model->follows('node_follows', ['user_id' => auth()->id(), 'node_id' => $nodeId]);
         }
         $topics = $model->listing($page, $nodeId, $recent);
         $hasNext = count($topics) > ForumModel::PAGE_SIZE;
@@ -50,13 +53,17 @@ final class Forum extends BaseController
             'title' => $recent ? '最新主题' : ($currentNode ? $currentNode['name'] : '主题'),
         ]);
     }
+
     public function topic(int $id)
     {
         $model = new ForumModel();
         $topic = $model->topic($id);
         if (!$topic) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
-        }$following = auth()->loggedIn() ? $model->follows('topic_follows', ['user_id' => auth()->id(),'topic_id' => $id]) : false;
-        return view('forum/topic', ['topic' => $topic,'comments' => $model->comments($id),'following' => $following]);
+        }
+        $following = auth()->loggedIn()
+            ? $model->follows('topic_follows', ['user_id' => auth()->id(), 'topic_id' => $id])
+            : false;
+        return view('forum/topic', ['topic' => $topic, 'comments' => $model->comments($id), 'following' => $following]);
     }
 }

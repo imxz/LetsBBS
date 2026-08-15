@@ -72,11 +72,5 @@ class Modules extends BaseModules
      *
      * @var list<string>
      */
-    public $aliases = [
-        'events',
-        'filters',
-        'registrars',
-        'routes',
-        'services',
-    ];
+    public $aliases = ['events', 'filters', 'registrars', 'routes', 'services'];
 }

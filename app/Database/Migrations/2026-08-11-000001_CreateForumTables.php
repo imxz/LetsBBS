@@ -19,7 +19,20 @@ final class CreateForumTables extends Migration
     public function down(): void
     {
         $this->db->disableForeignKeyChecks();
-        foreach (['topic_follows', 'user_follows', 'node_follows', 'notifications', 'comments', 'topics', 'nodes', 'user_profiles', 'site_settings'] as $table) {
+        foreach (
+            [
+                'topic_follows',
+                'user_follows',
+                'node_follows',
+                'notifications',
+                'comments',
+                'topics',
+                'nodes',
+                'user_profiles',
+                'site_settings',
+            ]
+            as $table
+        ) {
             $this->forge->dropTable($table, true);
         }
         $this->db->enableForeignKeyChecks();

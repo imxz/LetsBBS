@@ -1,0 +1,33 @@
+{
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "editor.detectIndentation": false,
+  "editor.insertSpaces": true,
+  "editor.tabSize": 4,
+  "prettier.requireConfig": true,
+  "prettier.documentSelectors": ["**/*.php"],
+  "php-cs-fixer.config": ".php-cs-fixer.dist.php",
+  "php-cs-fixer.allowRisky": false,
+  "php-cs-fixer.pathMode": "intersection",
+  "php-cs-fixer.onsave": false,
+  "php-cs-fixer.formatHtml": false,
+  "emeraldwalk.runonsave": {
+    "autoClearConsole": true,
+    "ignoreUnchangedFiles": true,
+    "commands": [
+      {
+        "match": "[\\\\/](?:app|tests|public)[\\\\/].*\\.php$",
+        "cmd": "npm --prefix \"${workspaceFolder}\" run format:file -- \"${file}\"",
+        "showElapsed": true,
+        "autoShowOutputPanel": "error"
+      }
+    ]
+  },
+  "[php]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": false,
+    "editor.insertSpaces": true,
+    "editor.tabSize": 4
+  }
+}

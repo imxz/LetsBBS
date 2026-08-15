@@ -30,7 +30,9 @@ class Kint
     public $plugins;
 
     public int $maxDepth = 6;
+
     public bool $displayCalledFrom = true;
+
     public bool $expanded = false;
 
     /*
@@ -39,6 +41,7 @@ class Kint
     |--------------------------------------------------------------------------
     */
     public string $richTheme = 'aante-light.css';
+
     public bool $richFolder = false;
 
     /**
@@ -57,7 +60,10 @@ class Kint
     |--------------------------------------------------------------------------
     */
     public bool $cliColors = true;
+
     public bool $cliForceUTF8 = false;
+
     public bool $cliDetectWidth = true;
+
     public int $cliMinWidth = 40;
 }

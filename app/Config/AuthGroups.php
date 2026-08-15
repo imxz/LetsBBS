@@ -73,10 +73,7 @@ class AuthGroups extends ShieldAuthGroups
      * This defines group-level permissions.
      */
     public array $matrix = [
-        'admin' => [
-            'admin.access',
-            'users.edit',
-        ],
+        'admin' => ['admin.access', 'users.edit'],
         'user' => [],
     ];
 }

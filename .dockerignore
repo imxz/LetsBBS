@@ -1,7 +1,14 @@
 .git
+.github
+.legacy-preview
+.vscode
 .env
+.env.*
 build
+node_modules
 vendor/**
+tools
+npm-debug.log*
 writable/cache/*
 !writable/cache/index.html
 writable/debugbar/*

@@ -47,6 +47,17 @@ Shield 管理会话认证及 `user`/`admin` 角色。注册用户名仅允许 3�
 
 正文在入库前经 HTML Purifier 白名单清理。只允许 HTTP(S) 链接、本地 `/uploads/editor/` 图片和 `text-align`；远程图片、Base64、SVG、iframe、媒体、脚本及危险协议会被拒绝或移除。编辑器上传会验证真实 MIME、尺寸和 5 MiB 上限，解码后以随机名称重新编码。
 
+## 代码格式化
+
+首次检出后运行 `npm install`，并在 VS Code 中安装工作区推荐扩展。保存 `app/`、`tests/` 或 `public/` 下的 PHP 文件时，会自动使用与整库命令相同的规则：普通 PHP 由 Prettier 和 PHP-CS-Fixer 处理，`app/Views` 模板还会识别 PHP 的 `if`、`else` 和 `foreach` 层级。
+
+```sh
+npm run format
+npm run format:check
+```
+
+也可以通过 Composer 运行同名命令：`composer format` 和 `composer format:check`。VS Code 的 `PHP: Format project`、`PHP: Format current file` 与 `PHP: Check formatting` 任务提供相同入口。
+
 ## 测试与验收
 
 真实 MySQL 8.4 集成测试使用一次性 tmpfs 数据库：
