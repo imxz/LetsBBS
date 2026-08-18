@@ -1,5 +1,6 @@
 <?php $siteName = service('siteSettings')->get('site_name', 'LetsBBS');
-$siteDescription = service('siteSettings')->get('site_description', '简洁的中文论坛'); ?>
+$siteDescription = service('siteSettings')->get('site_description', '简洁的中文论坛');
+$searchQuery = (string) service('request')->getGet('q'); ?>
 <!doctype html>
 <html lang="zh-CN">
 
@@ -15,23 +16,38 @@ $siteDescription = service('siteSettings')->get('site_description', '简洁的�
 
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container"><a class="navbar-brand" href="/"><?= esc($siteName) ?></a>
-            <div class="navbar-nav ms-auto align-items-lg-center gap-2">
-                <a class="nav-link" href="/recent">最新</a>
-                <?php if (auth()->loggedIn()): ?>
-                    <a class="nav-link" href="/topic/new">发布主题</a><a class="nav-link" href="/notification">通知</a><a
-                        class="nav-link"
-                        href="/member/<?= esc(auth()->user()->username, 'url') ?>"><?= esc(auth()->user()->username) ?></a>
-                    <?php if (auth()->user()->inGroup('admin')):?>
-                        <a class="nav-link" href="/admin">后台</a>
+        <div class="container">
+            <a class="navbar-brand" href="/"><?= esc($siteName) ?></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#main-navigation"
+                aria-controls="main-navigation" aria-expanded="false" aria-label="展开导航"><span
+                    class="navbar-toggler-icon"></span></button>
+            <div id="main-navigation" class="collapse navbar-collapse">
+                <div class="navbar-nav me-lg-3">
+                    <a class="nav-link" href="/">首页</a>
+                    <a class="nav-link" href="/node">节点</a>
+                    <a class="nav-link" href="/recent">最新</a>
+                    <a class="nav-link" href="/topic/new">发表</a>
+                </div>
+                <form class="d-flex my-2 my-lg-0 me-lg-auto" role="search" method="get" action="/search">
+                    <input class="form-control form-control-sm" type="search" name="q" maxlength="80" placeholder="搜索主题"
+                        aria-label="搜索主题" value="<?= esc($searchQuery) ?>"><button
+                        class="btn btn-sm btn-outline-light text-nowrap ms-2" type="submit">搜索</button>
+                </form>
+                <div class="navbar-nav ms-lg-auto align-items-lg-center gap-lg-2">
+                    <?php if (auth()->loggedIn()): ?>
+                        <a class="nav-link" href="/notification">通知</a><a class="nav-link"
+                            href="/member/<?= esc(auth()->user()->username, 'url') ?>"><?= esc(auth()->user()->username) ?></a>
+                        <?php if (auth()->user()->inGroup('admin')):?>
+                            <a class="nav-link" href="/admin">后台</a>
+                        <?php endif?>
+                        <form method="post" action="/logout">
+                            <?= csrf_field() ?>
+                            <button class="btn btn-sm btn-outline-light">退出</button>
+                        </form>
+                    <?php else:?>
+                        <a class="nav-link" href="/login">登录</a><a class="nav-link" href="/register">注册</a>
                     <?php endif?>
-                    <form method="post" action="/logout">
-                        <?= csrf_field() ?>
-                        <button class="btn btn-sm btn-outline-light">退出</button>
-                    </form>
-                <?php else:?>
-                    <a class="nav-link" href="/login">登录</a><a class="nav-link" href="/register">注册</a>
-                <?php endif?>
+                </div>
             </div>
         </div>
     </nav>

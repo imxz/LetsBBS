@@ -6,6 +6,16 @@ body{background:#eef1f4 url('/static/img/grid.png') repeat;color:#27313a}
 .topic-title{font-size:1.05rem;text-decoration:none}
 .meta{font-size:.82rem;color:#7a8791}
 .avatar{width:42px;height:42px;border-radius:50%;object-fit:cover;background:#667;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700}
+.min-w-0{min-width:0}
+.reply-count{min-width:2rem;padding:.2rem .5rem;border-radius:999px;background:#edf1f4;color:#58636d;text-align:center;text-decoration:none;font-size:.82rem}
+.reply-count:hover{background:#dfe7ed;color:#27313a}
+.node-card{padding:1rem;border:1px solid #e5e9ec;border-radius:.4rem;color:inherit;text-decoration:none}
+.node-card:hover{border-color:#aebbc5;background:#f8fafb}
+.follow-summary>a{padding:.2rem .35rem;color:inherit;text-decoration:none;border-right:1px solid #edf0f2}
+.follow-summary>a:last-child{border-right:0}
+.follow-summary strong,.follow-summary span{display:block}
+.follow-summary span{font-size:.75rem;color:#7a8791;margin-top:.2rem}
+.community-stats dt{font-weight:400;color:#66727c}
 .post-body{overflow-wrap:anywhere}
 .post-body img{max-width:100%;height:auto}
 .sidebar .list-group-item{border-left:0;border-right:0}

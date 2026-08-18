@@ -1,6 +1,6 @@
 <?= $this->extend('layouts/main') ?>
 
-<?= $this->setData(['editor' => true]) ?>
+<?php $this->setData(['editor' => true]) ?>
 
 <?= $this->section('content') ?>
 <div class="panel p-4">

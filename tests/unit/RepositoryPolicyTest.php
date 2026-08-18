@@ -110,4 +110,23 @@ final class RepositoryPolicyTest extends CIUnitTestCase
         $this->assertDoesNotMatchRegularExpression('/[A-Z]:\\\\/', $settings . $tasks);
         $this->assertStringNotContainsString('npm.cmd', $settings . $tasks);
     }
+
+    public function testViewContextSettersAreNotRenderedAsMarkup(): void
+    {
+        $views = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator(APPPATH . 'Views', FilesystemIterator::SKIP_DOTS),
+        );
+
+        foreach ($views as $view) {
+            if ($view->getExtension() !== 'php') {
+                continue;
+            }
+
+            $this->assertDoesNotMatchRegularExpression(
+                '/<\?=\s*\$this->setData\s*\(/',
+                file_get_contents($view->getPathname()),
+                $view->getPathname(),
+            );
+        }
+    }
 }

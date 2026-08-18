@@ -173,6 +173,8 @@ final class Admin extends BaseController
         service('siteSettings')->save([
             'site_name' => $siteName,
             'site_description' => mb_substr(trim((string) $this->request->getPost('site_description')), 0, 160),
+            'home_welcome_message' => mb_substr(trim((string) $this->request->getPost('home_welcome_message')), 0, 120),
+            'home_introduction' => mb_substr(trim((string) $this->request->getPost('home_introduction')), 0, 1000),
         ]);
 
         return redirect()->back()->with('success', '站点设置已保存。');

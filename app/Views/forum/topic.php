@@ -1,6 +1,6 @@
 <?= $this->extend('layouts/main') ?>
 
-<?= $this->setData(['editor' => auth()->loggedIn()]) ?>
+<?php $this->setData(['editor' => auth()->loggedIn()]) ?>
 
 <?= $this->section('content') ?>
 <article class="panel p-4 mb-3">
@@ -30,7 +30,7 @@
     <div class="post-body mt-4"><?= $topic['body'] ?></div>
 </article>
 <?php foreach ($comments as $i => $c):?>
-    <article class="panel p-3 mb-2">
+    <article id="reply-<?= $i + 1 ?>" class="panel p-3 mb-2">
         <div class="meta"><a href="/member/<?= esc($c['username'], 'url') ?>"><?= esc($c['username']) ?></a> ·
             #<?= $i + 1 ?> · <?= esc($c['created_at']) ?></div>
         <div class="post-body mt-2"><?= $c['body'] ?></div>

@@ -25,7 +25,11 @@
                 <input class="form-control mb-2" name="site_name" placeholder="站点名称" maxlength="80"
                     value="<?= esc(old('site_name', $settings['site_name'] ?? 'LetsBBS')) ?>" required><input
                     class="form-control mb-2" name="site_description" placeholder="站点说明" maxlength="160"
-                    value="<?= esc(old('site_description', $settings['site_description'] ?? '')) ?>"><button
+                    value="<?= esc(old('site_description', $settings['site_description'] ?? '')) ?>"><input
+                    class="form-control mb-2" name="home_welcome_message" placeholder="首页欢迎语" maxlength="120"
+                    value="<?= esc(old('home_welcome_message', $settings['home_welcome_message'] ?? '欢迎访问 LetsBBS')) ?>"><textarea
+                    class="form-control mb-2" name="home_introduction" placeholder="首页社区介绍" maxlength="1000"
+                    rows="4"><?= esc(old('home_introduction', $settings['home_introduction'] ?? '')) ?></textarea><button
                     class="btn btn-outline-primary">保存</button>
             </form>
         </div>

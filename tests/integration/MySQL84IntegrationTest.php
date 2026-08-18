@@ -211,4 +211,117 @@ final class MySQL84IntegrationTest extends CIUnitTestCase
             $settings->save($original);
         }
     }
+
+    public function testHomeQueriesProvideLegacyHomepageFeatures(): void
+    {
+        $db = db_connect();
+        $now = gmdate('Y-m-d H:i:s');
+        $db->transBegin();
+        try {
+            $userIds = [];
+            foreach (['homeauthor', 'homeviewer'] as $prefix) {
+                $db->table('users')->insert([
+                    'username' => $prefix . bin2hex(random_bytes(4)),
+                    'active' => 1,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+                $userIds[] = (int) $db->insertID();
+                $db->table('user_profiles')->insert([
+                    'user_id' => end($userIds),
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+            }
+            $nodeId = (int) $db->table('nodes')->select('id')->get()->getRow()->id;
+            $title = 'home query ' . bin2hex(random_bytes(5));
+            $db->table('topics')->insert([
+                'node_id' => $nodeId,
+                'user_id' => $userIds[0],
+                'title' => $title,
+                'body' => '<p>searchable homepage body</p>',
+                'status' => 'published',
+                'comment_count' => 1,
+                'last_activity_at' => $now,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+            $topicId = (int) $db->insertID();
+            $db->table('comments')->insert([
+                'topic_id' => $topicId,
+                'user_id' => $userIds[1],
+                'body' => '<p>reply</p>',
+                'status' => 'published',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+            $db->table('node_follows')->insert([
+                'user_id' => $userIds[1],
+                'node_id' => $nodeId,
+                'created_at' => $now,
+            ]);
+            $db->table('topic_follows')->insert([
+                'user_id' => $userIds[1],
+                'topic_id' => $topicId,
+                'created_at' => $now,
+            ]);
+            $db->table('user_follows')->insert([
+                'follower_id' => $userIds[1],
+                'followed_id' => $userIds[0],
+                'created_at' => $now,
+            ]);
+
+            $model = new \App\Models\ForumModel();
+            $search = $model->listing(1, null, false, 'all', $userIds[1], $title);
+            $this->assertSame($topicId, (int) $search[0]['id']);
+            $this->assertStringStartsWith('homeviewer', $search[0]['last_reply_username']);
+            foreach (['nodes', 'topics', 'users'] as $filter) {
+                $rows = $model->listing(1, null, false, $filter, $userIds[1]);
+                $this->assertContains($topicId, array_map(static fn(array $row): int => (int) $row['id'], $rows));
+            }
+            $summary = $model->viewerSummary($userIds[1]);
+            $this->assertSame(1, $summary['node_follows']);
+            $this->assertSame(1, $summary['topic_follows']);
+            $this->assertSame(1, $summary['user_follows']);
+            $this->assertArrayHasKey('users', $model->statistics());
+        } finally {
+            $db->transRollback();
+        }
+    }
+
+    public function testDemoSeederIsIdempotent(): void
+    {
+        $seeder = \Config\Database::seeder();
+        $seeder->call('App\\Database\\Seeds\\DemoSeeder');
+        $db = db_connect();
+        $titles = [
+            'LetsBBS 新版预览已经启动',
+            '如何开始使用这个轻社区？',
+            '关于新版重构的一些想法',
+            '希望增加哪些社区功能？',
+            '第一次来到 LetsBBS',
+            '本地预览数据说明',
+        ];
+        $first = [
+            'topics' => $db->table('topics')->whereIn('title', $titles)->countAllResults(),
+            'comments' => $db
+                ->table('comments c')
+                ->join('topics t', 't.id=c.topic_id')
+                ->whereIn('t.title', $titles)
+                ->countAllResults(),
+            'notifications' => $db->table('notifications')->where('kind', 'comment')->countAllResults(),
+        ];
+        $seeder->call('App\\Database\\Seeds\\DemoSeeder');
+        $this->assertSame(6, $first['topics']);
+        $this->assertSame(6, $first['comments']);
+        $this->assertSame($first, [
+            'topics' => $db->table('topics')->whereIn('title', $titles)->countAllResults(),
+            'comments' => $db
+                ->table('comments c')
+                ->join('topics t', 't.id=c.topic_id')
+                ->whereIn('t.title', $titles)
+                ->countAllResults(),
+            'notifications' => $db->table('notifications')->where('kind', 'comment')->countAllResults(),
+        ]);
+    }
 }

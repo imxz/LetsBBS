@@ -27,16 +27,16 @@ services:
     environment:
       CI_ENVIRONMENT: testing
       RUN_MYSQL_TESTS: "1"
-      database.default.hostname: mysql-test
-      database.default.database: letsbbs_test
-      database.default.username: letsbbs_test
-      database.default.password: letsbbs_test_password
-      database.default.DBDriver: MySQLi
-      database.tests.hostname: mysql-test
-      database.tests.database: letsbbs_test
-      database.tests.username: letsbbs_test
-      database.tests.password: letsbbs_test_password
-      database.tests.DBDriver: MySQLi
+      database_default_hostname: mysql-test
+      database_default_database: letsbbs_test
+      database_default_username: letsbbs_test
+      database_default_password: letsbbs_test_password
+      database_default_DBDriver: MySQLi
+      database_tests_hostname: mysql-test
+      database_tests_database: letsbbs_test
+      database_tests_username: letsbbs_test
+      database_tests_password: letsbbs_test_password
+      database_tests_DBDriver: MySQLi
     command:
       - sh
       - -c
