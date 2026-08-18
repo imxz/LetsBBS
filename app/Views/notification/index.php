@@ -2,12 +2,8 @@
 
 <?= $this->section('content') ?>
 <div class="panel">
-    <div class="p-3 border-bottom d-flex justify-content-between">
+    <div class="p-3 border-bottom">
         <h1 class="h5 mb-0">通知</h1>
-        <form method="post" action="/notification/read">
-            <?= csrf_field() ?>
-            <button class="btn btn-sm btn-outline-secondary">全部标为已读</button>
-        </form>
     </div>
     <?php if (!$items):?>
         <p class="p-4 text-secondary">暂无通知。</p>

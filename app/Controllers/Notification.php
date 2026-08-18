@@ -17,6 +17,12 @@ final class Notification extends BaseController
             ->limit(31, ($page - 1) * 30)
             ->get()
             ->getResultArray();
+        db_connect()
+            ->table('notifications')
+            ->where('user_id', auth()->id())
+            ->where('read_at', null)
+            ->update(['read_at' => gmdate('Y-m-d H:i:s')]);
+
         return view('notification/index', [
             'items' => array_slice($items, 0, 30),
             'page' => $page,

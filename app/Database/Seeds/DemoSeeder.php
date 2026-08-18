@@ -27,6 +27,8 @@ final class DemoSeeder extends Seeder
             }
             $ethanId = $this->ensureUser('ethan', '保持简单，持续创造。', $now - 604800);
             $xiaomingId = $this->ensureUser('xiaoming', '喜欢轻社区和开源软件。', $now - 345600);
+            $this->setProfileDetails($ethanId, '保持简单，持续创造。', '上海', 'https://example.com/ethan');
+            $this->setProfileDetails($xiaomingId, '今天也要认真交流。', '北京', 'https://example.com/xiaoming');
 
             $nodes = [];
             foreach (
@@ -100,26 +102,37 @@ final class DemoSeeder extends Seeder
             }
 
             $createdAt = gmdate('Y-m-d H:i:s', $now - 900);
-            $this->ensureFollow('node_follows', ['user_id' => $adminId, 'node_id' => $nodes['tutorials']], $createdAt);
-            $this->ensureFollow('node_follows', ['user_id' => $adminId, 'node_id' => $nodes['feedback']], $createdAt);
-            $this->ensureFollow('topic_follows', ['user_id' => $adminId, 'topic_id' => $topics[3]], $createdAt);
-            $this->ensureFollow('topic_follows', ['user_id' => $adminId, 'topic_id' => $topics[5]], $createdAt);
-            if ($adminId !== $xiaomingId) {
+            $viewerIds = $this->authenticatedMemberIds() ?: [$adminId];
+            foreach ($viewerIds as $viewerId) {
                 $this->ensureFollow(
-                    'user_follows',
-                    ['follower_id' => $adminId, 'followed_id' => $xiaomingId],
+                    'node_follows',
+                    ['user_id' => $viewerId, 'node_id' => $nodes['tutorials']],
                     $createdAt,
                 );
-            }
+                $this->ensureFollow(
+                    'node_follows',
+                    ['user_id' => $viewerId, 'node_id' => $nodes['feedback']],
+                    $createdAt,
+                );
+                $this->ensureFollow('topic_follows', ['user_id' => $viewerId, 'topic_id' => $topics[3]], $createdAt);
+                $this->ensureFollow('topic_follows', ['user_id' => $viewerId, 'topic_id' => $topics[5]], $createdAt);
+                if ($viewerId !== $xiaomingId) {
+                    $this->ensureFollow(
+                        'user_follows',
+                        ['follower_id' => $viewerId, 'followed_id' => $xiaomingId],
+                        $createdAt,
+                    );
+                }
 
-            $notification = [
-                'user_id' => $adminId,
-                'actor_id' => $ethanId,
-                'topic_id' => $topics[3],
-                'kind' => 'comment',
-            ];
-            if (!$this->db->table('notifications')->where($notification)->countAllResults()) {
-                $this->db->table('notifications')->insert($notification + ['created_at' => $createdAt]);
+                $notification = [
+                    'user_id' => $viewerId,
+                    'actor_id' => $ethanId,
+                    'topic_id' => $topics[3],
+                    'kind' => 'comment',
+                ];
+                if (!$this->db->table('notifications')->where($notification)->countAllResults()) {
+                    $this->db->table('notifications')->insert($notification + ['created_at' => $createdAt]);
+                }
             }
 
             $this->refreshCounters($topics, $now);
@@ -193,6 +206,44 @@ final class DemoSeeder extends Seeder
                 ->table('auth_groups_users')
                 ->insert(['user_id' => $userId, 'group' => $group, 'created_at' => $timestamp]);
         }
+    }
+
+    private function setProfileDetails(int $userId, string $signature, string $location, string $homepage): void
+    {
+        $this->db
+            ->table('user_profiles')
+            ->where('user_id', $userId)
+            ->update([
+                'signature' => $signature,
+                'location' => $location,
+                'homepage' => $homepage,
+            ]);
+    }
+
+    /** @return list<int> */
+    private function authenticatedMemberIds(): array
+    {
+        $rows = $this->db
+            ->table('auth_identities i')
+            ->select('i.user_id')
+            ->where('i.type', 'email_password')
+            ->orderBy('i.id')
+            ->get()
+            ->getResultArray();
+        $ids = [];
+        foreach ($rows as $row) {
+            $userId = (int) $row['user_id'];
+            if (
+                !$this->db
+                    ->table('auth_groups_users')
+                    ->where(['user_id' => $userId, 'group' => 'admin'])
+                    ->countAllResults()
+            ) {
+                $ids[] = $userId;
+            }
+        }
+
+        return array_values(array_unique($ids));
     }
 
     private function ensureNode(string $slug, string $name, string $description, int $sortOrder, int $now): int

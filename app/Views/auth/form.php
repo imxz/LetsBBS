@@ -16,7 +16,7 @@
                             id="captcha-image" class="captcha" src="/captcha" alt="验证码"><button id="captcha-refresh"
                             class="btn btn-outline-secondary" type="button">换一张</button></div>
                 </div>
-                <button class="btn btn-primary w-100"><?= $mode === 'register' ? '创建账号' : '登录' ?></button>
+                <button class="btn btn-primary w-100" type="submit"><?= $mode === 'register' ? '创建账号' : '登录' ?></button>
             </form>
         </div>
     </div>

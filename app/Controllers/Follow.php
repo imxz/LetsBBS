@@ -32,14 +32,12 @@ final class Follow extends BaseController
 
     public function member(string $username)
     {
-        $target = auth()
-            ->getProvider()
-            ->findByCredentials(['username' => $username]);
+        $target = db_connect()->table('users')->select('id')->where('username', $username)->get()->getRowArray();
         if (!$target) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
         }
         try {
-            $on = new FollowService()->toggleUser((int) auth()->id(), (int) $target->id);
+            $on = new FollowService()->toggleUser((int) auth()->id(), (int) $target['id']);
             return redirect()
                 ->back()
                 ->with('success', $on ? '已关注用户。' : '已取消关注。');

@@ -1,6 +1,7 @@
 <?php $siteName = service('siteSettings')->get('site_name', 'LetsBBS');
 $siteDescription = service('siteSettings')->get('site_description', '简洁的中文论坛');
-$searchQuery = (string) service('request')->getGet('q'); ?>
+$searchQuery = (string) service('request')->getGet('q');
+$currentPath = trim(service('request')->getUri()->getPath(), '/'); ?>
 <!doctype html>
 <html lang="zh-CN">
 
@@ -23,10 +24,10 @@ $searchQuery = (string) service('request')->getGet('q'); ?>
                     class="navbar-toggler-icon"></span></button>
             <div id="main-navigation" class="collapse navbar-collapse">
                 <div class="navbar-nav me-lg-3">
-                    <a class="nav-link" href="/">首页</a>
-                    <a class="nav-link" href="/node">节点</a>
-                    <a class="nav-link" href="/recent">最新</a>
-                    <a class="nav-link" href="/topic/new">发表</a>
+                    <a class="nav-link <?= $currentPath === '' ? 'active' : '' ?>" href="/">首页</a>
+                    <a class="nav-link <?= $currentPath === 'node' || str_starts_with($currentPath, 'node/') ? 'active' : '' ?>"
+                        href="/node">节点</a>
+                    <a class="nav-link <?= $currentPath === 'topic/new' ? 'active' : '' ?>" href="/topic/new">发表</a>
                 </div>
                 <form class="d-flex my-2 my-lg-0 me-lg-auto" role="search" method="get" action="/search">
                     <input class="form-control form-control-sm" type="search" name="q" maxlength="80" placeholder="搜索主题"
@@ -35,17 +36,21 @@ $searchQuery = (string) service('request')->getGet('q'); ?>
                 </form>
                 <div class="navbar-nav ms-lg-auto align-items-lg-center gap-lg-2">
                     <?php if (auth()->loggedIn()): ?>
-                        <a class="nav-link" href="/notification">通知</a><a class="nav-link"
+                        <a class="nav-link"
                             href="/member/<?= esc(auth()->user()->username, 'url') ?>"><?= esc(auth()->user()->username) ?></a>
                         <?php if (auth()->user()->inGroup('admin')):?>
                             <a class="nav-link" href="/admin">后台</a>
                         <?php endif?>
-                        <form method="post" action="/logout">
+                        <a class="nav-link <?= str_starts_with($currentPath, 'notification') ? 'active' : '' ?>"
+                            href="/notification">通知</a>
+                        <a class="nav-link <?= str_starts_with($currentPath, 'settings') ? 'active' : '' ?>"
+                            href="/settings">设置</a>
+                        <form class="d-flex" method="post" action="/logout">
                             <?= csrf_field() ?>
-                            <button class="btn btn-sm btn-outline-light">退出</button>
+                            <button class="btn nav-link border-0" type="submit">登出</button>
                         </form>
                     <?php else:?>
-                        <a class="nav-link" href="/login">登录</a><a class="nav-link" href="/register">注册</a>
+                        <a class="nav-link" href="/register">注册</a><a class="nav-link" href="/login">登录</a>
                     <?php endif?>
                 </div>
             </div>

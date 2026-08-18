@@ -111,6 +111,13 @@ final class RepositoryPolicyTest extends CIUnitTestCase
         $this->assertStringNotContainsString('npm.cmd', $settings . $tasks);
     }
 
+    public function testLocalRedirectBaseMatchesDocumentedPreviewUrl(): void
+    {
+        $app = file_get_contents(APPPATH . 'Config/App.php');
+        $this->assertStringContainsString('http://127.0.0.1:8080/', $app);
+        $this->assertStringNotContainsString('http://localhost:8080/', $app);
+    }
+
     public function testViewContextSettersAreNotRenderedAsMarkup(): void
     {
         $views = new RecursiveIteratorIterator(

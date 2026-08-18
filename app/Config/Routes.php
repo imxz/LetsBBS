@@ -36,8 +36,9 @@ $routes->get('notification/(:num)', 'Notification::index/$1', ['filter' => 'sess
 $routes->get('notification', 'Notification::index/1', ['filter' => 'session']);
 $routes->post('notification/read', 'Notification::readAll', ['filter' => 'session']);
 $routes->match(['GET', 'POST'], 'settings', 'Member::settings', ['filter' => 'session']);
+$routes->match(['GET', 'POST'], 'settings/profile', 'Member::settings', ['filter' => 'session']);
+$routes->match(['GET', 'POST'], 'settings/avatar', 'Member::avatar', ['filter' => 'session']);
 $routes->match(['GET', 'POST'], 'settings/password', 'Member::password', ['filter' => 'session']);
-$routes->post('settings/avatar', 'Member::avatar', ['filter' => 'session']);
 $routes->group('admin', ['filter' => 'group:admin'], static function (RouteCollection $routes): void {
     $routes->get('/', 'Admin::index');
     $routes->post('node', 'Admin::node');

@@ -50,6 +50,18 @@ final class MySQL84IntegrationTest extends CIUnitTestCase
             ])
             ->getRow()->n;
         $this->assertGreaterThanOrEqual(12, (int) $fks);
+        $profileColumns = array_column(
+            $db
+                ->query(
+                    "SELECT COLUMN_NAME FROM information_schema.columns WHERE table_schema=? AND table_name='user_profiles'",
+                    [$db->database],
+                )
+                ->getResultArray(),
+            'COLUMN_NAME',
+        );
+        foreach (['qq', 'location', 'homepage', 'signature'] as $column) {
+            $this->assertContains($column, $profileColumns);
+        }
     }
 
     public function testDuplicateFollowIsRejected(): void
@@ -323,5 +335,33 @@ final class MySQL84IntegrationTest extends CIUnitTestCase
                 ->countAllResults(),
             'notifications' => $db->table('notifications')->where('kind', 'comment')->countAllResults(),
         ]);
+    }
+
+    public function testDemoSeederPopulatesEveryAuthenticatedMemberWorkspace(): void
+    {
+        $provider = auth()->getProvider();
+        $username = 'dv' . bin2hex(random_bytes(4));
+        $user = new \CodeIgniter\Shield\Entities\User([
+            'username' => $username,
+            'email' => $username . '@example.test',
+            'password' => bin2hex(random_bytes(8)),
+            'active' => 1,
+        ]);
+        $this->assertTrue($provider->save($user), implode('; ', $provider->errors()));
+        $viewer = $provider->findById($provider->getInsertID());
+        $viewer->addGroup('user');
+        $viewerId = (int) $viewer->id;
+        $db = db_connect();
+        $now = gmdate('Y-m-d H:i:s');
+        $db->table('user_profiles')->insert(['user_id' => $viewerId, 'created_at' => $now, 'updated_at' => $now]);
+        try {
+            \Config\Database::seeder()->call('App\\Database\\Seeds\\DemoSeeder');
+            $this->assertSame(2, $db->table('node_follows')->where('user_id', $viewerId)->countAllResults());
+            $this->assertSame(2, $db->table('topic_follows')->where('user_id', $viewerId)->countAllResults());
+            $this->assertSame(1, $db->table('user_follows')->where('follower_id', $viewerId)->countAllResults());
+            $this->assertSame(1, $db->table('notifications')->where('user_id', $viewerId)->countAllResults());
+        } finally {
+            $db->table('users')->where('id', $viewerId)->delete();
+        }
     }
 }
