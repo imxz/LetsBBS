@@ -26,6 +26,10 @@
             <?php else:?>
                 回复了主题 <a href="/topic/<?= (int) $n['topic_id'] ?>"><?= esc($n['title']) ?></a>
             <?php endif?>
+
+            <?php if (!empty($n['comment_body'])):?>
+                <blockquote class="post-body border-start ps-3 mt-2 mb-1"><?= $n['comment_body'] ?></blockquote>
+            <?php endif?>
             <div class="meta"><?= esc($n['created_at']) ?></div>
         </div>
     <?php endforeach?>

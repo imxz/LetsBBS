@@ -44,6 +44,9 @@ final class Topic extends BaseController
                 (string) $this->request->getPost('title'),
                 (string) $this->request->getPost('body'),
             );
+            if (service('siteSettings')->get('topic_requires_approval', '0') === '1') {
+                return redirect()->to('/')->with('success', '主题已提交，审核通过后将公开显示。');
+            }
             return redirect()
                 ->to('/topic/' . $id)
                 ->with('success', '主题已发布。');

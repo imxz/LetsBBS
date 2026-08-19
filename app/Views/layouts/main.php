@@ -1,5 +1,6 @@
 <?php $siteName = service('siteSettings')->get('site_name', 'LetsBBS');
 $siteDescription = service('siteSettings')->get('site_description', '简洁的中文论坛');
+$siteKeywords = service('siteSettings')->get('site_keywords', 'LetsBBS,论坛,社区');
 $searchQuery = (string) service('request')->getGet('q');
 $currentPath = trim(service('request')->getUri()->getPath(), '/'); ?>
 <!doctype html>
@@ -9,6 +10,7 @@ $currentPath = trim(service('request')->getUri()->getPath(), '/'); ?>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="description" content="<?= esc($siteDescription) ?>">
+    <meta name="keywords" content="<?= esc($siteKeywords) ?>">
     <title><?= esc(isset($title) ? $title . ' - ' . $siteName : $siteName) ?></title>
     <link rel="icon" href="/static/img/favicon.png">
     <link rel="stylesheet" href="/static/vendor/bootstrap/css/bootstrap.min.css">

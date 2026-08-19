@@ -14,9 +14,12 @@ final class RoutePolicyTest extends CIUnitTestCase
         $this->assertStringContainsString("get('search', 'Forum::search/1')", $routes);
         $this->assertStringContainsString("'settings/profile', 'Member::settings', ['filter' => 'session']", $routes);
         $this->assertStringContainsString("'settings/avatar', 'Member::avatar', ['filter' => 'session']", $routes);
+        $this->assertStringContainsString("'reg', 'Auth::register'", $routes);
+        $this->assertStringContainsString("get('topic', 'Admin::topics/1')", $routes);
+        $this->assertStringContainsString("'settings/verify', 'Admin::verifySettings'", $routes);
         $this->assertStringNotContainsString('setAutoRoute(true)', $routes);
         $this->assertStringNotContainsString('MethodNotAllowed', $routes);
-        $this->assertStringNotContainsString("'reg'", $routes);
+        $this->assertStringNotContainsString("get('topic/(:num)/delete'", $routes);
     }
 
     public function testMemberNavigationRetainsLegacyUserActions(): void

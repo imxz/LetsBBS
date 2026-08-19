@@ -65,7 +65,14 @@ final class ForumModel extends Model
 
     public function nodes(): array
     {
-        return $this->db->table('nodes')->where('is_active', 1)->orderBy('sort_order')->get()->getResultArray();
+        return $this->db
+            ->table('nodes')
+            ->where('is_active', 1)
+            ->orderBy('parent_id IS NOT NULL', 'ASC', false)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get()
+            ->getResultArray();
     }
 
     public function hotTopics(int $limit = 10): array
@@ -128,6 +135,11 @@ final class ForumModel extends Model
             ->where(['t.id' => $id, 't.status' => 'published'])
             ->get()
             ->getRowArray();
+    }
+
+    public function incrementViewCount(int $id): void
+    {
+        $this->db->query("UPDATE topics SET view_count=view_count+1 WHERE id=? AND status='published'", [$id]);
     }
 
     public function comments(int $topicId): array

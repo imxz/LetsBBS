@@ -33,6 +33,8 @@ final class DemoSeeder extends Seeder
             $nodes = [];
             foreach (
                 [
+                    ['discussion', '讨论', '自由讨论区', 10],
+                    ['questions', '问答', '提问与互助', 20],
                     ['development', '开发动态', '开发计划与版本动态', 30],
                     ['release-notes', '程序发布', '版本发布与升级说明', 40],
                     ['tutorials', '教程帮助', '安装和使用教程', 50],
@@ -42,6 +44,30 @@ final class DemoSeeder extends Seeder
                 as [$slug, $name, $description, $sortOrder]
             ) {
                 $nodes[$slug] = $this->ensureNode($slug, $name, $description, $sortOrder, $now);
+            }
+            $communityParent = $this->ensureNode('community', '社区', '社区交流分区', 1, $now);
+            $projectParent = $this->ensureNode('project', '项目', '项目开发与发布', 2, $now);
+            $helpParent = $this->ensureNode('help', '帮助', '问答、教程与反馈', 3, $now);
+            foreach (
+                [
+                    'discussion' => [$communityParent, 1],
+                    'off-topic' => [$communityParent, 1],
+                    'development' => [$projectParent, 1],
+                    'release-notes' => [$projectParent, 1],
+                    'questions' => [$helpParent, 0],
+                    'tutorials' => [$helpParent, 1],
+                    'feedback' => [$helpParent, 1],
+                ]
+                as $slug => [$parentId, $showOnHome]
+            ) {
+                $this->db
+                    ->table('nodes')
+                    ->where('id', $nodes[$slug])
+                    ->update([
+                        'parent_id' => $parentId,
+                        'featured' => 1,
+                        'show_on_home' => $showOnHome,
+                    ]);
             }
 
             $topics = [];
@@ -130,8 +156,31 @@ final class DemoSeeder extends Seeder
                     'topic_id' => $topics[3],
                     'kind' => 'comment',
                 ];
-                if (!$this->db->table('notifications')->where($notification)->countAllResults()) {
+                $notificationKey = $notification;
+                $comment = $this->db
+                    ->table('comments')
+                    ->select('id')
+                    ->where(['topic_id' => $topics[3], 'user_id' => $ethanId])
+                    ->orderBy('id', 'DESC')
+                    ->get()
+                    ->getRowArray();
+                if ($comment) {
+                    $notification['comment_id'] = (int) $comment['id'];
+                }
+                $existingNotification = $this->db
+                    ->table('notifications')
+                    ->select('id')
+                    ->where($notificationKey)
+                    ->orderBy('id')
+                    ->get()
+                    ->getRowArray();
+                if (!$existingNotification) {
                     $this->db->table('notifications')->insert($notification + ['created_at' => $createdAt]);
+                } elseif (isset($notification['comment_id'])) {
+                    $this->db
+                        ->table('notifications')
+                        ->where('id', $existingNotification['id'])
+                        ->update(['comment_id' => $notification['comment_id']]);
                 }
             }
 
@@ -250,6 +299,15 @@ final class DemoSeeder extends Seeder
     {
         $row = $this->db->table('nodes')->select('id')->where('slug', $slug)->get()->getRowArray();
         if ($row) {
+            $this->db
+                ->table('nodes')
+                ->where('id', $row['id'])
+                ->update([
+                    'name' => $name,
+                    'description' => $description,
+                    'sort_order' => $sortOrder,
+                    'updated_at' => gmdate('Y-m-d H:i:s', $now),
+                ]);
             return (int) $row['id'];
         }
 

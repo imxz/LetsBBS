@@ -1,4 +1,8 @@
 <?php helper('forum'); ?>
+<?php $homeTopNodes = array_values(array_filter($nodes, static fn(array $node): bool => (bool) ($node['show_on_home'] ?? false)));
+if (!$homeTopNodes) {
+    $homeTopNodes = array_slice($nodes, 0, 6);
+} ?>
 
 <?= $this->extend('layouts/main') ?>
 
@@ -26,7 +30,7 @@
             </div>
             <?php if ($home):?>
                 <nav class="topic-filters p-3 border-bottom d-flex flex-wrap gap-2" aria-label="主题筛选">
-                    <?php foreach (array_slice($nodes, 0, 6) as $node):?>
+                    <?php foreach (array_slice($homeTopNodes, 0, 10) as $node):?>
                         <a class="btn btn-sm btn-outline-secondary"
                             href="/node/<?= $node['id'] ?>"><?= esc($node['name']) ?></a>
                     <?php endforeach?>
@@ -97,14 +101,37 @@
                     <h2 class="h6 mb-0">节点导航</h2>
                     <a href="/node">浏览所有节点</a>
                 </div>
-                <div class="d-flex flex-wrap gap-2">
-                    <?php foreach ($nodes as $node):?>
-                        <a class="btn btn-sm btn-outline-secondary" href="/node/<?= $node['id'] ?>">
-                            <?= esc($node['name']) ?>
-                            <span class="badge text-bg-light ms-1"><?= (int) $node['topic_count'] ?></span>
-                        </a>
-                    <?php endforeach?>
-                </div>
+                <?php $featuredNodes = array_values(array_filter($nodes, static fn(array $node): bool => (bool) ($node['featured'] ?? true)));
+            $children = [];
+            $roots = [];
+            foreach ($featuredNodes as $node) {
+                if ($node['parent_id']) {
+                    $children[(int) $node['parent_id']][] = $node;
+                } else {
+                    $roots[] = $node;
+                }
+            } ?>
+
+                <?php foreach ($roots as $root):?>
+
+                    <?php if (!empty($children[(int) $root['id']])):?>
+                        <div class="row mb-2">
+                            <div class="col-sm-3 meta pt-1"><?= esc($root['name']) ?></div>
+                            <div class="col-sm-9 d-flex flex-wrap gap-2">
+                                <?php foreach ($children[(int) $root['id']] as $child):?>
+                                    <a class="btn btn-sm btn-outline-secondary"
+                                        href="/node/<?= (int) $child['id'] ?>"><?= esc($child['name']) ?> <span
+                                            class="badge text-bg-light ms-1"><?= (int) $child['topic_count'] ?></span></a>
+                                <?php endforeach?>
+                            </div>
+                        </div>
+                    <?php else:?>
+                        <a class="btn btn-sm btn-outline-secondary me-1 mb-2"
+                            href="/node/<?= (int) $root['id'] ?>"><?= esc($root['name']) ?> <span
+                                class="badge text-bg-light ms-1"><?= (int) $root['topic_count'] ?></span></a>
+                    <?php endif?>
+
+                <?php endforeach?>
             </section>
         <?php endif?>
     </section>

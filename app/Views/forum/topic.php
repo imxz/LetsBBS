@@ -1,58 +1,125 @@
+<?php helper('forum'); ?>
+
 <?= $this->extend('layouts/main') ?>
 
 <?php $this->setData(['editor' => auth()->loggedIn()]) ?>
 
 <?= $this->section('content') ?>
-<article class="panel p-4 mb-3">
-    <div class="d-flex justify-content-between">
-        <div>
-            <div class="meta"><a href="/node/<?= $topic['node_id'] ?>"><?= esc($topic['node_name']) ?></a></div>
-            <h1 class="h4 mt-2"><?= esc($topic['title']) ?></h1>
-            <div class="meta">由 <a
-                    href="/member/<?= esc($topic['username'], 'url') ?>"><?= esc($topic['username']) ?></a> 发布于
-                <?= esc($topic['created_at']) ?></div>
-        </div>
-        <?php if (auth()->loggedIn()):?>
-            <div class="d-flex gap-2">
-                <form method="post" action="/topic/<?= $topic['id'] ?>/follow">
-                    <?= csrf_field() ?>
-                    <button class="btn btn-sm btn-outline-primary"><?= $following ? '取消关注' : '关注' ?></button>
-                </form>
-                <?php if (auth()->id() == $topic['user_id'] || auth()->user()->inGroup('admin')):?>
-                    <form method="post" action="/topic/<?= $topic['id'] ?>/delete">
+<div class="row g-4">
+    <section class="col-lg-8">
+        <article class="panel mb-3">
+            <header class="p-4 border-bottom">
+                <div class="d-flex justify-content-between gap-3">
+                    <div class="min-w-0">
+                        <div class="meta"><a href="/">首页</a> / <a
+                                href="/node/<?= (int) $topic['node_id'] ?>"><?= esc($topic['node_name']) ?></a></div>
+                        <h1 class="h4 mt-2 mb-2"><?= esc($topic['title']) ?></h1>
+                        <div class="meta">By <a
+                                href="/member/<?= esc($topic['username'], 'url') ?>"><?= esc($topic['username']) ?></a>
+                            · <?= esc($topic['created_at']) ?> · <?= (int) $topic['view_count'] ?> 次点击
+                            <?php if (auth()->loggedIn() && auth()->user()->inGroup('admin')):?>
+                                · <a href="/admin/topic/<?= (int) $topic['id'] ?>/edit">编辑</a>
+                            <?php endif?>
+                        </div>
+                    </div>
+                    <a class="avatar topic-avatar flex-shrink-0" href="/member/<?= esc($topic['username'], 'url') ?>">
+                        <?php if ($topic['avatar']):?>
+                            <img class="avatar topic-avatar" src="<?= esc($topic['avatar']) ?>"
+                                alt="<?= esc($topic['username']) ?> 的头像">
+                        <?php else:?>
+                            <?= esc(strtoupper(substr($topic['username'], 0, 1))) ?>
+
+                        <?php endif?>
+                    </a>
+                </div>
+            </header>
+            <div class="post-body p-4"><?= $topic['body'] ?></div>
+            <footer class="px-4 py-2 border-top d-flex justify-content-between align-items-center">
+                <?php if (auth()->loggedIn()):?>
+                    <form method="post" action="/topic/<?= (int) $topic['id'] ?>/follow">
                         <?= csrf_field() ?>
-                        <button class="btn btn-sm btn-outline-danger">删除</button>
+                        <button
+                            class="btn btn-sm btn-link text-secondary p-0"><?= $following ? '取消关注' : '关注主题' ?></button>
+                    </form>
+                <?php else:?>
+                    <a class="small text-secondary" href="/login">登录后关注主题</a>
+                <?php endif?>
+
+                <?php if (auth()->loggedIn() && (auth()->id() == $topic['user_id'] || auth()->user()->inGroup('admin'))):?>
+                    <form method="post" action="/topic/<?= (int) $topic['id'] ?>/delete">
+                        <?= csrf_field() ?>
+                        <button class="btn btn-sm btn-link text-danger p-0"
+                            onclick="return confirm('确实要删除吗？')">删除</button>
                     </form>
                 <?php endif?>
-            </div>
-        <?php endif?>
-    </div>
-    <div class="post-body mt-4"><?= $topic['body'] ?></div>
-</article>
-<?php foreach ($comments as $i => $c):?>
-    <article id="reply-<?= $i + 1 ?>" class="panel p-3 mb-2">
-        <div class="meta"><a href="/member/<?= esc($c['username'], 'url') ?>"><?= esc($c['username']) ?></a> ·
-            #<?= $i + 1 ?> · <?= esc($c['created_at']) ?></div>
-        <div class="post-body mt-2"><?= $c['body'] ?></div>
-        <?php if (auth()->loggedIn() && auth()->user()->inGroup('admin')):?>
-            <form class="mt-2" method="post" action="/admin/comment/<?= $c['id'] ?>/moderate">
-                <?= csrf_field() ?>
-                <button class="btn btn-sm btn-outline-danger" name="status" value="deleted">删除回复</button>
-            </form>
-        <?php endif?>
-    </article>
-<?php endforeach?>
+            </footer>
+        </article>
 
+        <section class="panel mb-3">
+            <header class="p-3 border-bottom d-flex justify-content-between">
+                <h2 class="h6 mb-0"><?= (int) $topic['comment_count'] ?> 回复 · 截至现在</h2><a class="small text-secondary"
+                    href="#Reply">添加回复</a>
+            </header>
+            <?php foreach ($comments as $i => $comment):?>
+                <article id="reply-<?= $i + 1 ?>" class="topic-row d-flex gap-3">
+                    <a class="avatar flex-shrink-0" href="/member/<?= esc($comment['username'], 'url') ?>">
+                        <?php if ($comment['avatar']):?>
+                            <img class="avatar" src="<?= esc($comment['avatar']) ?>"
+                                alt="<?= esc($comment['username']) ?> 的头像">
+                        <?php else:?>
+                            <?= esc(strtoupper(substr($comment['username'], 0, 1))) ?>
+
+                        <?php endif?>
+                    </a>
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="d-flex justify-content-between gap-3">
+                            <div class="meta"><a
+                                    href="/member/<?= esc($comment['username'], 'url') ?>"><?= esc($comment['username']) ?></a>
+                                · <?= esc(relative_time($comment['created_at'])) ?></div><button
+                                class="btn btn-sm btn-link text-secondary p-0 js-reply-to" type="button"
+                                data-username="<?= esc($comment['username']) ?>">#<?= $i + 1 ?> ↩</button>
+                        </div>
+                        <div class="post-body mt-2"><?= $comment['body'] ?></div>
+                        <?php if (auth()->loggedIn() && auth()->user()->inGroup('admin')):?>
+                            <form class="mt-2" method="post"
+                                action="/admin/comment/<?= (int) $comment['id'] ?>/moderate">
+                                <?= csrf_field() ?>
+                                <button class="btn btn-sm btn-link text-danger p-0" name="status"
+                                    value="deleted">删除回复</button>
+                            </form>
+                        <?php endif?>
+                    </div>
+                </article>
+            <?php endforeach?>
+
+            <?php if (!$comments):?>
+                <p class="p-4 text-secondary mb-0">暂无回复。</p>
+            <?php endif?>
+        </section>
+
+        <section class="panel" id="Reply">
+            <header class="p-3 border-bottom">
+                <h2 class="h6 mb-0">添加一条新回复</h2>
+            </header>
+            <div class="p-3">
+                <?php if (auth()->loggedIn()):?>
+                    <form method="post" action="/topic/<?= (int) $topic['id'] ?>/comment">
+                        <?= csrf_field() ?>
+                        <textarea class="form-control js-editor" id="reply_body" name="body" required></textarea><button
+                            class="btn btn-primary mt-3">提交</button>
+                    </form>
+                <?php else:?>
+                    <div class="bg-light border rounded p-3 text-center"><a href="/reg">注册</a> 参与讨论 或 <a
+                            href="/login">登录</a></div>
+                <?php endif?>
+            </div>
+        </section>
+    </section>
+    <?= $this->include('forum/_common_sidebar') ?>
+</div>
 <?php if (auth()->loggedIn()):?>
-    <div class="panel p-3 mt-3">
-        <form method="post" action="/topic/<?= $topic['id'] ?>/comment">
-            <?= csrf_field() ?>
-            <textarea class="form-control js-editor" name="body" required></textarea><button
-                class="btn btn-primary mt-3">回复</button>
-        </form>
-    </div>
-<?php else:?>
-    <div class="alert alert-light border mt-3"><a href="/login">登录</a>后参与回复。</div>
+    <script
+        <?= csp_script_nonce() ?>>document.querySelectorAll('.js-reply-to').forEach(function(button){button.addEventListener('click',function(){const mention='@'+button.dataset.username+' ';const editor=window.tinymce&&tinymce.get('reply_body');if(editor){editor.focus();editor.insertContent(mention)}else{const field=document.getElementById('reply_body');field.value+=mention;field.focus()}location.hash='Reply'})});</script>
 <?php endif?>
 
 <?= $this->endSection() ?>

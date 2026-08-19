@@ -54,6 +54,21 @@ final class InitialSeeder extends Seeder
                     'setting_value' => json_encode('这是一个简洁、安全的中文社区。', JSON_UNESCAPED_UNICODE),
                     'updated_at' => $now,
                 ],
+                [
+                    'setting_key' => 'site_subtitle',
+                    'setting_value' => json_encode('轻量、简洁的中文社区', JSON_UNESCAPED_UNICODE),
+                    'updated_at' => $now,
+                ],
+                [
+                    'setting_key' => 'site_keywords',
+                    'setting_value' => json_encode('LetsBBS,论坛,社区', JSON_UNESCAPED_UNICODE),
+                    'updated_at' => $now,
+                ],
+                [
+                    'setting_key' => 'topic_requires_approval',
+                    'setting_value' => json_encode('0', JSON_UNESCAPED_UNICODE),
+                    'updated_at' => $now,
+                ],
             ]);
     }
 }

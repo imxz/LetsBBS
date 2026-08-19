@@ -9,9 +9,10 @@ final class Notification extends BaseController
         $page = max(1, $page);
         $items = db_connect()
             ->table('notifications n')
-            ->select('n.*,u.username actor_name,t.title')
+            ->select('n.*,u.username actor_name,t.title,c.body comment_body')
             ->join('users u', 'u.id=n.actor_id', 'left')
             ->join('topics t', "t.id=n.topic_id AND t.status='published'", 'left')
+            ->join('comments c', "c.id=n.comment_id AND c.status='published'", 'left')
             ->where('n.user_id', auth()->id())
             ->orderBy('n.id', 'DESC')
             ->limit(31, ($page - 1) * 30)

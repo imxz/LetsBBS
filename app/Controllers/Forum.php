@@ -25,7 +25,9 @@ final class Forum extends BaseController
 
     public function nodes()
     {
-        return view('forum/nodes', ['nodes' => new ForumModel()->nodes(), 'title' => '节点']);
+        $model = new ForumModel();
+
+        return view('forum/nodes', ['nodes' => $model->nodes(), 'title' => '节点'] + $this->sidebarData($model));
     }
 
     public function search(int $page = 1)
@@ -117,6 +119,7 @@ final class Forum extends BaseController
     public function topic(int $id)
     {
         $model = new ForumModel();
+        $model->incrementViewCount($id);
         $topic = $model->topic($id);
         if (!$topic) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
@@ -124,6 +127,28 @@ final class Forum extends BaseController
         $following = auth()->loggedIn()
             ? $model->follows('topic_follows', ['user_id' => auth()->id(), 'topic_id' => $id])
             : false;
-        return view('forum/topic', ['topic' => $topic, 'comments' => $model->comments($id), 'following' => $following]);
+        return view(
+            'forum/topic',
+            [
+                'topic' => $topic,
+                'comments' => $model->comments($id),
+                'following' => $following,
+            ] + $this->sidebarData($model),
+        );
+    }
+
+    private function sidebarData(ForumModel $model): array
+    {
+        $viewerId = auth()->loggedIn() ? (int) auth()->id() : null;
+        $settings = service('siteSettings');
+
+        return [
+            'statistics' => $model->statistics(),
+            'viewer' => $viewerId !== null ? $model->viewerSummary($viewerId) : null,
+            'siteIntroduction' => $settings->get(
+                'home_introduction',
+                $settings->get('site_description', '简洁的中文论坛'),
+            ),
+        ];
     }
 }

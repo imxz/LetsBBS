@@ -62,6 +62,20 @@ final class MySQL84IntegrationTest extends CIUnitTestCase
         foreach (['qq', 'location', 'homepage', 'signature'] as $column) {
             $this->assertContains($column, $profileColumns);
         }
+        $nodeColumns = array_column(
+            $db
+                ->query(
+                    "SELECT COLUMN_NAME FROM information_schema.columns WHERE table_schema=? AND table_name='nodes'",
+                    [$db->database],
+                )
+                ->getResultArray(),
+            'COLUMN_NAME',
+        );
+        foreach (['parent_id', 'keywords', 'featured', 'show_on_home'] as $column) {
+            $this->assertContains($column, $nodeColumns);
+        }
+        $this->assertTrue($db->fieldExists('view_count', 'topics'));
+        $this->assertTrue($db->fieldExists('comment_id', 'notifications'));
     }
 
     public function testDuplicateFollowIsRejected(): void
@@ -139,7 +153,7 @@ final class MySQL84IntegrationTest extends CIUnitTestCase
                 (int) $db->table('topics')->select('follower_count')->where('id', $topicId)->get()->getRow()
                     ->follower_count,
             );
-            new \App\Services\TopicService()->comment($ids[1], $topicId, '<p>Reply</p>');
+            $commentId = new \App\Services\TopicService()->comment($ids[1], $topicId, '<p>Reply</p>');
             $this->assertSame(
                 1,
                 (int) $db->table('topics')->select('comment_count')->where('id', $topicId)->get()->getRow()
@@ -156,6 +170,15 @@ final class MySQL84IntegrationTest extends CIUnitTestCase
                     ->table('notifications')
                     ->where(['user_id' => $ids[0], 'topic_id' => $topicId, 'kind' => 'comment'])
                     ->countAllResults(),
+            );
+            $this->assertSame(
+                $commentId,
+                (int) $db
+                    ->table('notifications')
+                    ->select('comment_id')
+                    ->where(['user_id' => $ids[0], 'topic_id' => $topicId, 'kind' => 'comment'])
+                    ->get()
+                    ->getRow()->comment_id,
             );
             new \App\Services\TopicService()->delete($ids[0], $topicId, false);
             $this->assertSame(
@@ -222,6 +245,64 @@ final class MySQL84IntegrationTest extends CIUnitTestCase
         } finally {
             $settings->save($original);
         }
+    }
+
+    public function testTopicApprovalSettingQueuesNewTopicsWithoutVisibleCounters(): void
+    {
+        $db = db_connect();
+        $settings = service('siteSettings');
+        $original = $settings->all();
+        $now = gmdate('Y-m-d H:i:s');
+        $username = 'approval' . bin2hex(random_bytes(4));
+        $db->table('users')->insert([
+            'username' => $username,
+            'active' => 1,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        $userId = (int) $db->insertID();
+        $db->table('user_profiles')->insert(['user_id' => $userId, 'created_at' => $now, 'updated_at' => $now]);
+        $node = $db->table('nodes')->select('id,topic_count')->where('is_active', 1)->get()->getRowArray();
+        $topicId = null;
+        try {
+            $settings->save(['topic_requires_approval' => '1']);
+            $topicId = new \App\Services\TopicService()->create(
+                $userId,
+                (int) $node['id'],
+                'approval ' . bin2hex(random_bytes(4)),
+                '<p>pending</p>',
+            );
+            $topic = $db->table('topics')->where('id', $topicId)->get()->getRowArray();
+            $this->assertSame('hidden', $topic['status']);
+            $this->assertSame(
+                (int) $node['topic_count'],
+                (int) $db->table('nodes')->select('topic_count')->where('id', $node['id'])->get()->getRow()
+                    ->topic_count,
+            );
+            $this->assertSame(0, $db->table('topic_follows')->where('topic_id', $topicId)->countAllResults());
+        } finally {
+            if ($topicId !== null) {
+                $db->table('topics')->where('id', $topicId)->delete();
+            }
+            $db->table('users')->where('id', $userId)->delete();
+            $settings->save($original);
+        }
+    }
+
+    public function testTopicViewCounterRetainsLegacyContext(): void
+    {
+        $db = db_connect();
+        $topic = $db->table('topics')->select('id,view_count')->where('status', 'published')->get()->getRowArray();
+        if (!$topic) {
+            \Config\Database::seeder()->call('App\\Database\\Seeds\\DemoSeeder');
+            $topic = $db->table('topics')->select('id,view_count')->where('status', 'published')->get()->getRowArray();
+        }
+        $model = new \App\Models\ForumModel();
+        $model->incrementViewCount((int) $topic['id']);
+        $this->assertSame(
+            (int) $topic['view_count'] + 1,
+            (int) $db->table('topics')->select('view_count')->where('id', $topic['id'])->get()->getRow()->view_count,
+        );
     }
 
     public function testHomeQueriesProvideLegacyHomepageFeatures(): void
