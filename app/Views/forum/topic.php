@@ -8,12 +8,12 @@
 <div class="row g-4">
     <section class="col-lg-8">
         <article class="panel mb-3">
-            <header class="p-4 border-bottom">
+            <header class="panel-heading topic-detail-heading">
                 <div class="d-flex justify-content-between gap-3">
                     <div class="min-w-0">
                         <div class="meta"><a href="/">首页</a> / <a
                                 href="/node/<?= (int) $topic['node_id'] ?>"><?= esc($topic['node_name']) ?></a></div>
-                        <h1 class="h4 mt-2 mb-2"><?= esc($topic['title']) ?></h1>
+                        <h1 class="topic-detail-title"><?= esc($topic['title']) ?></h1>
                         <div class="meta">By <a
                                 href="/member/<?= esc($topic['username'], 'url') ?>"><?= esc($topic['username']) ?></a>
                             · <?= esc($topic['created_at']) ?> · <?= (int) $topic['view_count'] ?> 次点击
@@ -33,8 +33,8 @@
                     </a>
                 </div>
             </header>
-            <div class="post-body p-4"><?= $topic['body'] ?></div>
-            <footer class="px-4 py-2 border-top d-flex justify-content-between align-items-center">
+            <div class="post-body panel-body"><?= $topic['body'] ?></div>
+            <footer class="panel-footer d-flex justify-content-between align-items-center">
                 <?php if (auth()->loggedIn()):?>
                     <form method="post" action="/topic/<?= (int) $topic['id'] ?>/follow">
                         <?= csrf_field() ?>
@@ -56,9 +56,9 @@
         </article>
 
         <section class="panel mb-3">
-            <header class="p-3 border-bottom d-flex justify-content-between">
-                <h2 class="h6 mb-0"><?= (int) $topic['comment_count'] ?> 回复 · 截至现在</h2><a class="small text-secondary"
-                    href="#Reply">添加回复</a>
+            <header class="panel-heading d-flex justify-content-between">
+                <h2 class="panel-title"><small><?= (int) $topic['comment_count'] ?> 回复 · 截至现在</small></h2><a
+                    class="small text-secondary" href="#Reply">添加回复</a>
             </header>
             <?php foreach ($comments as $i => $comment):?>
                 <article id="reply-<?= $i + 1 ?>" class="topic-row d-flex gap-3">
@@ -98,10 +98,10 @@
         </section>
 
         <section class="panel" id="Reply">
-            <header class="p-3 border-bottom">
-                <h2 class="h6 mb-0">添加一条新回复</h2>
+            <header class="panel-heading">
+                <h2 class="panel-title">添加一条新回复</h2>
             </header>
-            <div class="p-3">
+            <div class="panel-body">
                 <?php if (auth()->loggedIn()):?>
                     <form method="post" action="/topic/<?= (int) $topic['id'] ?>/comment">
                         <?= csrf_field() ?>

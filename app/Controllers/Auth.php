@@ -83,7 +83,7 @@ final class Auth extends BaseController
             session()->regenerate(true);
             return redirect()->to('/')->with('success', '注册成功。');
         }
-        return view('auth/form', ['mode' => 'register']);
+        return view('auth/form', ['mode' => 'register', 'title' => '注册'] + $this->sidebarData());
     }
 
     public function login()
@@ -108,7 +108,7 @@ final class Auth extends BaseController
             session()->regenerate(true);
             return redirect()->to('/')->with('success', '登录成功。');
         }
-        return view('auth/form', ['mode' => 'login']);
+        return view('auth/form', ['mode' => 'login', 'title' => '登录'] + $this->sidebarData());
     }
 
     public function logout()

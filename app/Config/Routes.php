@@ -15,6 +15,7 @@ $routes->get('recent/(:num)', 'Forum::recent/$1');
 $routes->get('recent', 'Forum::recent/1');
 $routes->get('search/(:num)', 'Forum::search/$1');
 $routes->get('search', 'Forum::search/1');
+$routes->get('topic/show/(:segment)', 'Forum::show/$1');
 $routes->get('topic/(:num)', 'Forum::topic/$1');
 $routes->get('node/(:num)/(:num)', 'Forum::node/$1/$2');
 $routes->get('node/(:num)', 'Forum::node/$1/1');

@@ -1,18 +1,19 @@
 <?= $this->extend('layouts/main') ?>
 
 <?= $this->section('content') ?>
-<div class="row g-4">
-    <section class="col-lg-8">
+<?php $statusLabels = ['published' => '已发布', 'hidden' => '待审核', 'deleted' => '已删除']; ?>
+<div class="row admin-shell">
+    <section class="col-lg-8 admin-main">
         <div class="panel">
-            <div class="p-3 border-bottom">
-                <h1 class="h5 mb-0"><?= esc($title) ?></h1>
+            <div class="panel-heading">
+                <h1 class="panel-title"><?= esc($title) ?></h1>
             </div>
-            <div class="p-3 table-responsive">
-                <form class="d-flex gap-2 mb-3" method="get">
+            <div class="panel-body table-responsive">
+                <form class="d-flex gap-2 admin-search" method="get">
                     <input class="form-control" name="q" maxlength="80" placeholder="搜索标题"
                         value="<?= esc($query) ?>"><button class="btn btn-outline-secondary text-nowrap">提交</button>
                 </form>
-                <table class="table align-middle mb-0">
+                <table class="table admin-table">
                     <thead>
                         <tr>
                             <th>#</th>
@@ -26,27 +27,31 @@
                         <?php foreach ($topics as $topic):?>
                             <tr>
                                 <td><?= (int) $topic['id'] ?></td>
-                                <td><a href="/topic/<?= (int) $topic['id'] ?>"
+                                <td class="admin-title-cell"><a href="/topic/<?= (int) $topic['id'] ?>"
                                         target="_blank"><?= esc($topic['title']) ?></a>
-                                    <div class="meta"><?= esc($topic['node_name']) ?> · <?= esc($topic['status']) ?>
+                                    <div class="meta mt-1"><?= esc($topic['node_name']) ?> · <span
+                                            class="status-badge status-<?= esc($topic['status']) ?>"><?= esc($statusLabels[$topic['status']] ?? $topic['status']) ?></span>
                                     </div>
                                 </td>
                                 <td><a href="/member/<?= esc($topic['username'], 'url') ?>"
                                         target="_blank"><?= esc($topic['username']) ?></a></td>
-                                <td class="meta text-nowrap"><?= esc($topic['created_at']) ?></td>
-                                <td class="text-nowrap">
-                                    <a href="/admin/topic/<?= (int) $topic['id'] ?>/edit">编辑</a>
-                                    <form class="d-inline" method="post"
-                                        action="/admin/topic/<?= (int) $topic['id'] ?>/moderate">
-                                        <?= csrf_field() ?>
+                                <td class="meta text-nowrap" title="<?= esc($topic['created_at']) ?>">
+                                    <?= esc(date('m-d H:i', strtotime($topic['created_at']))) ?></td>
+                                <td>
+                                    <div class="admin-actions"><a
+                                            href="/admin/topic/<?= (int) $topic['id'] ?>/edit">编辑</a>
+                                        <form class="d-inline" method="post"
+                                            action="/admin/topic/<?= (int) $topic['id'] ?>/moderate">
+                                            <?= csrf_field() ?>
 
-                                        <?php if ($topic['status'] === 'hidden'):?>
-                                            <button class="btn btn-sm btn-link text-success p-0" name="status"
-                                                value="published">通过</button>
-                                        <?php endif?>
-                                        <button class="btn btn-sm btn-link text-danger p-0" name="status"
-                                            value="deleted" onclick="return confirm('确实要删除吗？')">删除</button>
-                                    </form>
+                                            <?php if ($topic['status'] === 'hidden'):?>
+                                                <button class="btn btn-sm btn-link text-success p-0" name="status"
+                                                    value="published">通过</button>
+                                            <?php endif?>
+                                            <button class="btn btn-sm btn-link text-danger p-0" name="status"
+                                                value="deleted" onclick="return confirm('确实要删除吗？')">删除</button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach?>
@@ -70,8 +75,8 @@
         </nav>
         <?php if ($section === 'topic-verify'):?>
             <div class="panel mt-4">
-                <div class="p-3 border-bottom">
-                    <h2 class="h5 mb-0">待审核回复</h2>
+                <div class="panel-heading">
+                    <h2 class="panel-title">待审核回复</h2>
                 </div>
                 <?php foreach ($pendingComments as $comment):?>
                     <article class="topic-row">

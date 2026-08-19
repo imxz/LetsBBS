@@ -24,11 +24,15 @@ final class Notification extends BaseController
             ->where('read_at', null)
             ->update(['read_at' => gmdate('Y-m-d H:i:s')]);
 
-        return view('notification/index', [
-            'items' => array_slice($items, 0, 30),
-            'page' => $page,
-            'hasNext' => count($items) > 30,
-        ]);
+        return view(
+            'notification/index',
+            [
+                'items' => array_slice($items, 0, 30),
+                'page' => $page,
+                'hasNext' => count($items) > 30,
+                'title' => '通知中心',
+            ] + $this->sidebarData(),
+        );
     }
 
     public function readAll()

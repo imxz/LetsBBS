@@ -8,9 +8,23 @@ final class Forum extends BaseController
 {
     private const FILTERS = ['all', 'nodes', 'topics', 'users'];
 
+    private const HOME_SELECTION_KEY = 'top_show_node';
+
     public function index()
     {
-        return $this->listing(1, null, false, true);
+        $querySelection = strtolower(trim((string) $this->request->getGet('filter')));
+        if (in_array($querySelection, self::FILTERS, true)) {
+            return $this->homeListing($querySelection, true);
+        }
+
+        $selection = (string) (session()->get(self::HOME_SELECTION_KEY) ?? 'all');
+
+        return $this->homeListing($selection === '' ? 'all' : $selection, false);
+    }
+
+    public function show(string $selection)
+    {
+        return $this->homeListing($selection, true);
     }
 
     public function recent(int $page = 1)
@@ -27,7 +41,7 @@ final class Forum extends BaseController
     {
         $model = new ForumModel();
 
-        return view('forum/nodes', ['nodes' => $model->nodes(), 'title' => '节点'] + $this->sidebarData($model));
+        return view('forum/nodes', ['nodes' => $model->nodes(), 'title' => '节点'] + $this->sidebarData());
     }
 
     public function search(int $page = 1)
@@ -40,14 +54,50 @@ final class Forum extends BaseController
         return $this->listing($page, null, true, false, $query);
     }
 
-    private function listing(int $page, ?int $nodeId, bool $recent, bool $home = false, string $search = '')
+    private function homeListing(string $selection, bool $persist)
     {
+        $selection = strtolower(trim($selection));
+        $nodeId = null;
+        $filter = 'all';
+
+        if (in_array($selection, self::FILTERS, true)) {
+            $filter = $selection;
+        } elseif (ctype_digit($selection) && (int) $selection > 0) {
+            $nodeId = (int) $selection;
+        } elseif ($persist) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        } else {
+            $selection = 'all';
+        }
+
+        if ($filter !== 'all' && !auth()->loggedIn()) {
+            $selection = 'all';
+            $filter = 'all';
+        }
+        if ($persist) {
+            session()->set(self::HOME_SELECTION_KEY, $selection);
+        }
+
+        return $this->listing(max(1, (int) $this->request->getGet('page')), $nodeId, false, true, '', $filter);
+    }
+
+    private function listing(
+        int $page,
+        ?int $nodeId,
+        bool $recent,
+        bool $home = false,
+        string $search = '',
+        ?string $homeFilter = null,
+    ) {
         $page = max(1, $page);
         $model = new ForumModel();
         $nodes = $model->nodes();
         $viewerId = auth()->loggedIn() ? (int) auth()->id() : null;
-        $filter = (string) $this->request->getGet('filter');
+        $filter = $homeFilter ?? (string) $this->request->getGet('filter');
         if (!in_array($filter, self::FILTERS, true) || ($filter !== 'all' && $viewerId === null)) {
+            $filter = 'all';
+        }
+        if ($nodeId !== null) {
             $filter = 'all';
         }
         $currentNode = null;
@@ -58,9 +108,14 @@ final class Forum extends BaseController
             }
         }
         if ($nodeId !== null && $currentNode === null) {
-            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+            if (!$home) {
+                throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+            }
+            $nodeId = null;
+            $filter = 'all';
+            session()->set(self::HOME_SELECTION_KEY, 'all');
         }
-        if ($nodeId && auth()->loggedIn()) {
+        if ($nodeId && auth()->loggedIn() && !$home) {
             $nodeFollowing = $model->follows('node_follows', ['user_id' => auth()->id(), 'node_id' => $nodeId]);
         }
         $topics = $model->listing($page, $nodeId, $recent, $filter, $viewerId, $search);
@@ -74,32 +129,36 @@ final class Forum extends BaseController
             $title = '搜索：' . $search;
         }
 
-        return view('forum/list', [
-            'topics' => array_slice($topics, 0, ForumModel::PAGE_SIZE),
-            'nodes' => $nodes,
-            'page' => $page,
-            'hasNext' => $hasNext,
-            'nodeId' => $nodeId,
-            'currentNode' => $currentNode,
-            'nodeFollowing' => $nodeFollowing,
-            'title' => $title,
-            'home' => $home,
-            'filter' => $filter,
-            'search' => $search,
-            'previousUrl' => $page > 1 ? $this->pageUrl($page - 1, $nodeId, $search, $filter) : null,
-            'nextUrl' => $hasNext ? $this->pageUrl($page + 1, $nodeId, $search, $filter) : null,
-            'hotTopics' => $home ? $model->hotTopics() : [],
-            'statistics' => $home ? $model->statistics() : [],
-            'viewer' => $home && $viewerId !== null ? $model->viewerSummary($viewerId) : null,
-            'siteIntroduction' => $settings->get(
-                'home_introduction',
-                $settings->get('site_description', '简洁的中文论坛'),
-            ),
-        ]);
+        return view(
+            'forum/list',
+            [
+                'topics' => array_slice($topics, 0, ForumModel::PAGE_SIZE),
+                'nodes' => $nodes,
+                'page' => $page,
+                'hasNext' => $hasNext,
+                'nodeId' => $nodeId,
+                'currentNode' => $currentNode,
+                'nodeFollowing' => $nodeFollowing,
+                'title' => $title,
+                'home' => $home,
+                'filter' => $filter,
+                'search' => $search,
+                'previousUrl' => $page > 1 ? $this->pageUrl($page - 1, $nodeId, $search, $filter, $home) : null,
+                'nextUrl' => $hasNext ? $this->pageUrl($page + 1, $nodeId, $search, $filter, $home) : null,
+                'hotTopics' => $home ? $model->hotTopics() : [],
+            ] + $this->sidebarData(),
+        );
     }
 
-    private function pageUrl(int $page, ?int $nodeId, string $search, string $filter): string
+    private function pageUrl(int $page, ?int $nodeId, string $search, string $filter, bool $home = false): string
     {
+        if ($home) {
+            $selection = $nodeId !== null ? (string) $nodeId : $filter;
+            $query = $page > 1 ? '?page=' . $page : '';
+
+            return '/topic/show/' . rawurlencode($selection) . $query;
+        }
+
         if ($nodeId !== null) {
             return '/node/' . $nodeId . '/' . $page;
         }
@@ -133,22 +192,8 @@ final class Forum extends BaseController
                 'topic' => $topic,
                 'comments' => $model->comments($id),
                 'following' => $following,
-            ] + $this->sidebarData($model),
+                'title' => $topic['title'],
+            ] + $this->sidebarData(),
         );
-    }
-
-    private function sidebarData(ForumModel $model): array
-    {
-        $viewerId = auth()->loggedIn() ? (int) auth()->id() : null;
-        $settings = service('siteSettings');
-
-        return [
-            'statistics' => $model->statistics(),
-            'viewer' => $viewerId !== null ? $model->viewerSummary($viewerId) : null,
-            'siteIntroduction' => $settings->get(
-                'home_introduction',
-                $settings->get('site_description', '简洁的中文论坛'),
-            ),
-        ];
     }
 }

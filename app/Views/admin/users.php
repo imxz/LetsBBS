@@ -1,17 +1,17 @@
 <?= $this->extend('layouts/main') ?>
 
 <?= $this->section('content') ?>
-<div class="row g-4">
-    <section class="col-lg-8">
+<div class="row admin-shell">
+    <section class="col-lg-8 admin-main">
         <div class="panel">
-            <div class="p-3 border-bottom">
-                <h1 class="h5 mb-0"><?= esc($title) ?></h1>
+            <div class="panel-heading">
+                <h1 class="panel-title"><?= esc($title) ?></h1>
             </div>
-            <div class="p-3 table-responsive">
-                <form class="d-flex gap-2 mb-3" method="get"><input class="form-control" name="q" maxlength="80"
+            <div class="panel-body table-responsive">
+                <form class="d-flex gap-2 admin-search" method="get"><input class="form-control" name="q" maxlength="80"
                         placeholder="搜索用户名" value="<?= esc($query) ?>"><button
                         class="btn btn-outline-secondary">提交</button></form>
-                <table class="table align-middle mb-0">
+                <table class="table admin-table">
                     <thead>
                         <tr>
                             <th>#</th>
@@ -28,15 +28,20 @@
                                 <td><a href="/member/<?= esc($member['username'], 'url') ?>"
                                         target="_blank"><?= esc($member['username']) ?></a><?= !$member['active'] ? ' <span class="badge text-bg-secondary">停用</span>' : '' ?>
                                 </td>
-                                <td><?= esc($member['email'] ?? '') ?></td>
-                                <td class="meta text-nowrap"><?= esc($member['created_at']) ?></td>
-                                <td class="text-nowrap"><a href="/admin/user/<?= (int) $member['id'] ?>/edit">编辑</a>
-                                    <form class="d-inline" method="post"
-                                        action="/admin/user/<?= (int) $member['id'] ?>/mute">
-                                        <?= csrf_field() ?>
-                                        <button
-                                            class="btn btn-sm btn-link p-0 <?= $member['is_muted'] ? 'text-success' : 'text-danger' ?>"><?= $member['is_muted'] ? '激活发言' : '禁言' ?></button>
-                                    </form>
+                                <td class="admin-email-cell" title="<?= esc($member['email'] ?? '') ?>">
+                                    <?= esc($member['email'] ?? '') ?></td>
+                                <td class="meta text-nowrap" title="<?= esc($member['created_at']) ?>">
+                                    <?= esc(date('m-d H:i', strtotime($member['created_at']))) ?></td>
+                                <td>
+                                    <div class="admin-actions"><a
+                                            href="/admin/user/<?= (int) $member['id'] ?>/edit">编辑</a>
+                                        <form class="d-inline" method="post"
+                                            action="/admin/user/<?= (int) $member['id'] ?>/mute">
+                                            <?= csrf_field() ?>
+                                            <button
+                                                class="btn btn-sm btn-link p-0 <?= $member['is_muted'] ? 'text-success' : 'text-danger' ?>"><?= $member['is_muted'] ? '激活发言' : '禁言' ?></button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach?>

@@ -18,7 +18,7 @@ $currentPath = trim(service('request')->getUri()->getPath(), '/'); ?>
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-light site-navbar">
         <div class="container">
             <a class="navbar-brand" href="/"><?= esc($siteName) ?></a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#main-navigation"
@@ -34,14 +34,15 @@ $currentPath = trim(service('request')->getUri()->getPath(), '/'); ?>
                 <form class="d-flex my-2 my-lg-0 me-lg-auto" role="search" method="get" action="/search">
                     <input class="form-control form-control-sm" type="search" name="q" maxlength="80" placeholder="搜索主题"
                         aria-label="搜索主题" value="<?= esc($searchQuery) ?>"><button
-                        class="btn btn-sm btn-outline-light text-nowrap ms-2" type="submit">搜索</button>
+                        class="btn btn-sm btn-outline-secondary text-nowrap ms-2" type="submit">搜索</button>
                 </form>
-                <div class="navbar-nav ms-lg-auto align-items-lg-center gap-lg-2">
+                <div class="navbar-nav ms-lg-auto align-items-lg-center">
                     <?php if (auth()->loggedIn()): ?>
                         <a class="nav-link"
                             href="/member/<?= esc(auth()->user()->username, 'url') ?>"><?= esc(auth()->user()->username) ?></a>
                         <?php if (auth()->user()->inGroup('admin')):?>
-                            <a class="nav-link" href="/admin">后台</a>
+                            <a class="nav-link <?= str_starts_with($currentPath, 'admin') ? 'active' : '' ?>"
+                                href="/admin">后台</a>
                         <?php endif?>
                         <a class="nav-link <?= str_starts_with($currentPath, 'notification') ? 'active' : '' ?>"
                             href="/notification">通知</a>
@@ -49,7 +50,7 @@ $currentPath = trim(service('request')->getUri()->getPath(), '/'); ?>
                             href="/settings">设置</a>
                         <form class="d-flex" method="post" action="/logout">
                             <?= csrf_field() ?>
-                            <button class="btn nav-link border-0" type="submit">登出</button>
+                            <button class="btn nav-link nav-logout border-0" type="submit">登出</button>
                         </form>
                     <?php else:?>
                         <a class="nav-link" href="/register">注册</a><a class="nav-link" href="/login">登录</a>
@@ -58,7 +59,7 @@ $currentPath = trim(service('request')->getUri()->getPath(), '/'); ?>
             </div>
         </div>
     </nav>
-    <main class="container py-4">
+    <main class="container site-main">
         <?php if (session('error')):?>
             <div class="alert alert-danger"><?= esc(session('error')) ?></div>
         <?php endif?>
@@ -68,7 +69,13 @@ $currentPath = trim(service('request')->getUri()->getPath(), '/'); ?>
         <?php endif?>
         <?= $this->renderSection('content') ?>
     </main>
-    <footer class="container py-4 text-secondary small border-top"><?= esc($siteName) ?> · CodeIgniter 4</footer>
+    <footer class="site-footer">
+        <div class="container">
+            <p>Copyright © 2015 <a href="/"><?= esc($siteName) ?></a>. All rights reserved.</p>
+            <p>Powered By <a href="http://letsbbs.com" rel="nofollow noopener">Let'sBBS</a> v0.2.0 build-150408. Page
+                rendered in {elapsed_time} seconds.</p>
+        </div>
+    </footer>
     <script src="/static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
     <?php if (!empty($editor)):?>
         <script src="/static/vendor/tinymce/tinymce.min.js"></script>

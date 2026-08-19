@@ -51,12 +51,16 @@ final class Member extends BaseController
                     ->countAllResults() > 0;
         }
 
-        return view('member/show', [
-            'member' => $member,
-            'topics' => $topics,
-            'comments' => $comments,
-            'following' => $following,
-        ]);
+        return view(
+            'member/show',
+            [
+                'member' => $member,
+                'topics' => $topics,
+                'comments' => $comments,
+                'following' => $following,
+                'title' => $member['username'],
+            ] + $this->sidebarData(),
+        );
     }
 
     public function topics(string $username, int $page = 1)
@@ -70,13 +74,17 @@ final class Member extends BaseController
             ->limit(self::PAGE_SIZE + 1, ($page - 1) * self::PAGE_SIZE)
             ->get()
             ->getResultArray();
-        return view('member/activity', [
-            'member' => $m,
-            'rows' => array_slice($rows, 0, self::PAGE_SIZE),
-            'kind' => 'topics',
-            'page' => $page,
-            'hasNext' => count($rows) > self::PAGE_SIZE,
-        ]);
+        return view(
+            'member/activity',
+            [
+                'member' => $m,
+                'rows' => array_slice($rows, 0, self::PAGE_SIZE),
+                'kind' => 'topics',
+                'page' => $page,
+                'hasNext' => count($rows) > self::PAGE_SIZE,
+                'title' => $m['username'] . ' 的主题',
+            ] + $this->sidebarData(),
+        );
     }
 
     public function comments(string $username, int $page = 1)
@@ -92,13 +100,17 @@ final class Member extends BaseController
             ->limit(self::PAGE_SIZE + 1, ($page - 1) * self::PAGE_SIZE)
             ->get()
             ->getResultArray();
-        return view('member/activity', [
-            'member' => $m,
-            'rows' => array_slice($rows, 0, self::PAGE_SIZE),
-            'kind' => 'comments',
-            'page' => $page,
-            'hasNext' => count($rows) > self::PAGE_SIZE,
-        ]);
+        return view(
+            'member/activity',
+            [
+                'member' => $m,
+                'rows' => array_slice($rows, 0, self::PAGE_SIZE),
+                'kind' => 'comments',
+                'page' => $page,
+                'hasNext' => count($rows) > self::PAGE_SIZE,
+                'title' => $m['username'] . ' 的回复',
+            ] + $this->sidebarData(),
+        );
     }
 
     public function settings()
@@ -148,7 +160,7 @@ final class Member extends BaseController
         $p = db_connect()->table('user_profiles')->where('user_id', auth()->id())->get()->getRowArray();
         $p['email'] = (string) auth()->user()->email;
 
-        return view('member/settings', ['profile' => $p]);
+        return view('member/settings', ['profile' => $p, 'title' => '修改资料'] + $this->sidebarData());
     }
 
     public function avatar()
@@ -156,7 +168,7 @@ final class Member extends BaseController
         if ($this->request->getMethod() === 'GET') {
             $profile = db_connect()->table('user_profiles')->where('user_id', auth()->id())->get()->getRowArray();
 
-            return view('member/avatar', ['profile' => $profile]);
+            return view('member/avatar', ['profile' => $profile, 'title' => '上传头像'] + $this->sidebarData());
         }
 
         try {
@@ -200,6 +212,6 @@ final class Member extends BaseController
 
             return redirect()->to('/login')->with('success', '密码已修改，请重新登录。');
         }
-        return view('member/password');
+        return view('member/password', ['title' => '修改密码'] + $this->sidebarData());
     }
 }

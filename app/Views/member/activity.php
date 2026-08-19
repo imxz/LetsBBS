@@ -1,35 +1,40 @@
 <?= $this->extend('layouts/main') ?>
 
 <?= $this->section('content') ?>
-<div class="panel">
-    <div class="p-3 border-bottom">
-        <h1 class="h5 mb-0"><?= esc($member['username']) ?> 的<?= $kind === 'topics' ? '主题' : '回复' ?></h1>
-    </div>
-    <?php if (!$rows):?>
-        <p class="p-4 text-secondary mb-0">暂无内容。</p>
-    <?php endif?>
-
-    <?php foreach ($rows as $r):?>
-        <div class="topic-row"><a
-                href="/topic/<?= $kind === 'topics' ? $r['id'] : $r['topic_id'] ?>"><?= esc($r['title']) ?></a>
-            <?php if ($kind === 'comments'):?>
-                <div class="post-body mt-2"><?= $r['body'] ?></div>
+<div class="row g-4">
+    <section class="col-lg-8">
+        <div class="panel">
+            <div class="panel-heading">
+                <h1 class="panel-title"><?= esc($member['username']) ?> 的<?= $kind === 'topics' ? '主题' : '回复' ?></h1>
+            </div>
+            <?php if (!$rows):?>
+                <p class="p-4 text-secondary mb-0">暂无内容。</p>
             <?php endif?>
-            <div class="meta"><?= esc($r['created_at']) ?></div>
-        </div>
-    <?php endforeach?>
-</div>
-<nav class="mt-3 d-flex justify-content-between">
-    <?php if ($page > 1):?>
-        <a class="btn btn-outline-secondary"
-            href="/member/<?= esc($member['username'], 'url') ?>/<?= $kind ?>/<?= $page - 1 ?>">上一页</a>
-    <?php else:?>
-        <span></span>
-    <?php endif?>
 
-    <?php if ($hasNext):?>
-        <a class="btn btn-outline-secondary"
-            href="/member/<?= esc($member['username'], 'url') ?>/<?= $kind ?>/<?= $page + 1 ?>">下一页</a>
-    <?php endif?>
-</nav>
+            <?php foreach ($rows as $r):?>
+                <div class="topic-row"><a
+                        href="/topic/<?= $kind === 'topics' ? $r['id'] : $r['topic_id'] ?>"><?= esc($r['title']) ?></a>
+                    <?php if ($kind === 'comments'):?>
+                        <div class="post-body mt-2"><?= $r['body'] ?></div>
+                    <?php endif?>
+                    <div class="meta"><?= esc($r['created_at']) ?></div>
+                </div>
+            <?php endforeach?>
+        </div>
+        <nav class="mt-3 d-flex justify-content-between">
+            <?php if ($page > 1):?>
+                <a class="btn btn-outline-secondary"
+                    href="/member/<?= esc($member['username'], 'url') ?>/<?= $kind ?>/<?= $page - 1 ?>">上一页</a>
+            <?php else:?>
+                <span></span>
+            <?php endif?>
+
+            <?php if ($hasNext):?>
+                <a class="btn btn-outline-secondary"
+                    href="/member/<?= esc($member['username'], 'url') ?>/<?= $kind ?>/<?= $page + 1 ?>">下一页</a>
+            <?php endif?>
+        </nav>
+    </section>
+    <?= $this->include('forum/_common_sidebar') ?>
+</div>
 <?= $this->endSection() ?>

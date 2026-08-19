@@ -12,6 +12,7 @@ final class RoutePolicyTest extends CIUnitTestCase
         $this->assertStringContainsString("'Media::image', ['filter' => 'session']", $routes);
         $this->assertStringContainsString("get('node', 'Forum::nodes')", $routes);
         $this->assertStringContainsString("get('search', 'Forum::search/1')", $routes);
+        $this->assertStringContainsString("get('topic/show/(:segment)', 'Forum::show/$1')", $routes);
         $this->assertStringContainsString("'settings/profile', 'Member::settings', ['filter' => 'session']", $routes);
         $this->assertStringContainsString("'settings/avatar', 'Member::avatar', ['filter' => 'session']", $routes);
         $this->assertStringContainsString("'reg', 'Auth::register'", $routes);

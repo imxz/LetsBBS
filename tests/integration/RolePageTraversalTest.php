@@ -39,7 +39,8 @@ final class RolePageTraversalTest extends CIUnitTestCase
             'name' => '身份回归节点',
             'slug' => 'role-' . bin2hex(random_bytes(4)),
             'description' => '三身份页面回归',
-            'sort_order' => 999,
+            'sort_order' => -999,
+            'show_on_home' => 1,
             'created_at' => $now,
             'updated_at' => $now,
         ]);
@@ -93,6 +94,7 @@ final class RolePageTraversalTest extends CIUnitTestCase
         $username = rawurlencode($this->ordinary->username);
         $paths = [
             '/',
+            '/topic/show/' . $this->nodeId,
             '/node',
             '/node/' . $this->nodeId,
             '/recent',
@@ -112,6 +114,26 @@ final class RolePageTraversalTest extends CIUnitTestCase
         }
         $this->get('/settings')->assertRedirect();
         $this->get('/admin')->assertRedirect();
+    }
+
+    public function testHomeNodeSelectionFiltersTopicsAndPersists(): void
+    {
+        $selectionPath = '/topic/show/' . $this->nodeId;
+        $selected = $this->get($selectionPath);
+
+        $selected->assertStatus(200);
+        $selected->assertSee('三身份页面回归主题');
+        $selected->assertSee('topshow');
+        $this->assertStringContainsString('aria-current="page"', $selected->getBody());
+        $this->assertSame((string) $this->nodeId, session()->get('top_show_node'));
+
+        $home = $this->withSession(['top_show_node' => (string) $this->nodeId])->get('/');
+        $home->assertStatus(200);
+        $home->assertSee('三身份页面回归主题');
+        $this->assertStringContainsString(
+            'href="' . $selectionPath . '" role="button" aria-current="page"',
+            $home->getBody(),
+        );
     }
 
     public function testOrdinaryUserCanTraverseMemberBusinessPagesButNotAdmin(): void

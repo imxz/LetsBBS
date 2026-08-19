@@ -16,14 +16,18 @@ final class Topic extends BaseController
 
     public function create()
     {
-        return view('forum/editor', [
-            'nodes' => db_connect()
-                ->table('nodes')
-                ->where('is_active', 1)
-                ->orderBy('sort_order')
-                ->get()
-                ->getResultArray(),
-        ]);
+        return view(
+            'forum/editor',
+            [
+                'title' => '创建新主题',
+                'nodes' => db_connect()
+                    ->table('nodes')
+                    ->where('is_active', 1)
+                    ->orderBy('sort_order')
+                    ->get()
+                    ->getResultArray(),
+            ] + $this->sidebarData(),
+        );
     }
 
     public function store()
