@@ -2,7 +2,9 @@
 $siteDescription = service('siteSettings')->get('site_description', '简洁的中文论坛');
 $siteKeywords = service('siteSettings')->get('site_keywords', 'LetsBBS,论坛,社区');
 $searchQuery = (string) service('request')->getGet('q');
-$currentPath = trim(service('request')->getUri()->getPath(), '/'); ?>
+$currentPath = trim(service('request')->getUri()->getPath(), '/');
+$stylesheetPath = FCPATH . 'static/css/app.css';
+$stylesheetVersion = is_file($stylesheetPath) ? (string) filemtime($stylesheetPath) : '1'; ?>
 <!doctype html>
 <html lang="zh-CN">
 
@@ -14,7 +16,7 @@ $currentPath = trim(service('request')->getUri()->getPath(), '/'); ?>
     <title><?= esc(isset($title) ? $title . ' - ' . $siteName : $siteName) ?></title>
     <link rel="icon" href="/static/img/favicon.png">
     <link rel="stylesheet" href="/static/vendor/bootstrap/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/static/css/app.css">
+    <link rel="stylesheet" href="/static/css/app.css?v=<?= esc($stylesheetVersion, 'url') ?>">
 </head>
 
 <body>
@@ -25,16 +27,15 @@ $currentPath = trim(service('request')->getUri()->getPath(), '/'); ?>
                 aria-controls="main-navigation" aria-expanded="false" aria-label="展开导航"><span
                     class="navbar-toggler-icon"></span></button>
             <div id="main-navigation" class="collapse navbar-collapse">
-                <div class="navbar-nav me-lg-3">
+                <div class="navbar-nav">
                     <a class="nav-link <?= $currentPath === '' ? 'active' : '' ?>" href="/">首页</a>
                     <a class="nav-link <?= $currentPath === 'node' || str_starts_with($currentPath, 'node/') ? 'active' : '' ?>"
                         href="/node">节点</a>
                     <a class="nav-link <?= $currentPath === 'topic/new' ? 'active' : '' ?>" href="/topic/new">发表</a>
                 </div>
-                <form class="d-flex my-2 my-lg-0 me-lg-auto" role="search" method="get" action="/search">
-                    <input class="form-control form-control-sm" type="search" name="q" maxlength="80" placeholder="搜索主题"
-                        aria-label="搜索主题" value="<?= esc($searchQuery) ?>"><button
-                        class="btn btn-sm btn-outline-secondary text-nowrap ms-2" type="submit">搜索</button>
+                <form class="site-navbar-search me-lg-auto" role="search" method="get" action="/search">
+                    <input class="form-control" type="text" name="q" maxlength="80" placeholder="Search"
+                        aria-label="搜索主题" value="<?= esc($searchQuery) ?>">
                 </form>
                 <div class="navbar-nav ms-lg-auto align-items-lg-center">
                     <?php if (auth()->loggedIn()): ?>
@@ -77,6 +78,8 @@ $currentPath = trim(service('request')->getUri()->getPath(), '/'); ?>
         </div>
     </footer>
     <script src="/static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script
+        <?= csp_script_nonce() ?>>document.querySelector('.site-navbar-search .form-control')?.addEventListener('keydown',function(event){if(event.key==='Enter'){event.preventDefault();this.form.submit();}});</script>
     <?php if (!empty($editor)):?>
         <script src="/static/vendor/tinymce/tinymce.min.js"></script>
         <script

@@ -31,4 +31,17 @@ final class RoutePolicyTest extends CIUnitTestCase
         $this->assertStringContainsString('>登出</button>', $layout);
         $this->assertStringNotContainsString('href="/recent">最新</a>', $layout);
     }
+
+    public function testNavbarKeepsLegacySearchStructure(): void
+    {
+        $layout = file_get_contents(APPPATH . 'Views/layouts/main.php');
+
+        $this->assertStringContainsString('class="site-navbar-search me-lg-auto"', $layout);
+        $this->assertStringContainsString('class="form-control" type="text"', $layout);
+        $this->assertStringContainsString('placeholder="Search"', $layout);
+        $this->assertStringNotContainsString('type="submit">搜索</button>', $layout);
+        $this->assertStringContainsString("event.key==='Enter'", $layout);
+        $this->assertStringContainsString('this.form.submit()', $layout);
+        $this->assertStringContainsString("app.css?v=<?= esc(\$stylesheetVersion, 'url') ?>", $layout);
+    }
 }

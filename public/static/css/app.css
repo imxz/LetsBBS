@@ -41,12 +41,15 @@ a:focus {
     margin-bottom: 20px;
     padding: 0;
     background: #f8f8f8;
-    border-bottom: 1px solid #e7e7e7;
+    border: 1px solid #e7e7e7;
+    border-radius: 4px;
 }
 
 .site-navbar .navbar-brand {
     min-height: 50px;
-    padding: 14px 15px;
+    margin-right: 0;
+    margin-left: -12px;
+    padding: 15px;
     color: #777;
     font-size: 18px;
     font-weight: 400;
@@ -83,12 +86,25 @@ a:focus {
     border-color: #ddd;
 }
 
-.site-navbar form[role='search'] {
-    max-width: 190px;
+.site-navbar .site-navbar-search {
+    width: 226px;
+    height: 34px;
+    flex: 0 0 226px;
+    margin: 8px 0;
+    padding: 0 15px;
 }
 
-.site-navbar form[role='search'] .form-control {
-    min-height: 34px;
+.site-navbar .site-navbar-search .form-control {
+    width: 196px;
+    height: 34px;
+    padding: 6px 12px;
+    color: #555;
+    line-height: 20px;
+}
+
+.site-navbar .site-navbar-search .form-control::placeholder {
+    color: #999;
+    opacity: 1;
 }
 
 .site-navbar .nav-logout {
@@ -570,9 +586,16 @@ blockquote.post-body {
         border-top: 1px solid #e7e7e7;
     }
 
-    .site-navbar form[role='search'] {
-        max-width: none;
+    .site-navbar .site-navbar-search {
+        width: 100%;
+        height: auto;
+        flex: 0 0 100%;
+        margin: 0;
         padding: 0 15px 10px;
+    }
+
+    .site-navbar .site-navbar-search .form-control {
+        width: 100%;
     }
 
     .site-navbar .navbar-nav {
