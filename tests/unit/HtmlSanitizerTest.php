@@ -20,11 +20,26 @@ final class HtmlSanitizerTest extends CIUnitTestCase
         $this->assertStringContainsString($path, $clean);
     }
 
-    public function testOnlyAllowsTextAlignmentStyle(): void
+    public function testAllowsEditorFormatsButRejectsPositionAndActiveContent(): void
     {
         $clean = new HtmlSanitizer()->clean('<p style="text-align:center;color:red;position:fixed">ok</p>');
         $this->assertStringContainsString('text-align:center', $clean);
-        $this->assertStringNotContainsString('color:', $clean);
+        $this->assertStringContainsString('color:', $clean);
         $this->assertStringNotContainsString('position:', $clean);
+        $formats = new HtmlSanitizer()->clean(
+            '<p><span style="font-size:24px;color:#123456;text-decoration:underline">文字</span></p><hr><pre><code>&lt;script&gt;</code></pre>',
+        );
+        foreach (
+            ['font-size:24px', 'color:', 'text-decoration:underline', '<hr', '<pre>', '<code>', '&lt;script&gt;']
+            as $part
+        ) {
+            $this->assertStringContainsString($part, $formats);
+        }
+        foreach (
+            ['<p>&nbsp; <br></p>', '<script>alert(1)</script>', '<img src="https://bad.test/a.png">', '<p>　</p>']
+            as $empty
+        ) {
+            $this->assertSame('', new HtmlSanitizer()->clean($empty));
+        }
     }
 }

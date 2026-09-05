@@ -26,8 +26,11 @@
                         <div class="mb-3"><label class="form-label">首个管理员用户名</label><input class="form-control"
                                 name="username" pattern="[a-z0-9]{3,12}" required></div>
                         <div class="mb-3"><label class="form-label">密码</label><input class="form-control"
-                                type="password" name="password" minlength="12" required></div><button
-                            class="btn btn-primary">检查并安装</button>
+                                type="password" name="password" minlength="12" required></div>
+                        <div class="mb-3"><label class="form-label">管理员邮箱</label><input class="form-control"
+                                type="email" name="email" maxlength="254" value="<?= esc(old('email')) ?>" required>
+                            <p class="form-text">用于账号资料与可选的邮件找回，安装不需要 SMTP。</p>
+                        </div><button class="btn btn-primary">检查并安装</button>
                     </form>
                 </div>
             </div>

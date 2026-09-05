@@ -13,11 +13,17 @@
 
             <?php foreach ($rows as $r):?>
                 <div class="topic-row"><a
-                        href="/topic/<?= $kind === 'topics' ? $r['id'] : $r['topic_id'] ?>"><?= esc($r['title']) ?></a>
+                        href="<?= esc($kind === 'topics' ? '/topic/' . $r['id'] : reply_url((int) $r['topic_id'], (int) $r['id'])) ?>"><?= esc($r['title']) ?></a>
                     <?php if ($kind === 'comments'):?>
                         <div class="post-body mt-2"><?= $r['body'] ?></div>
                     <?php endif?>
-                    <div class="meta"><?= esc($r['created_at']) ?></div>
+
+                    <?php if ($kind === 'topics'): ?>
+                        <?= view('member/_topic_meta', ['item' => $r]) ?>
+
+                    <?php else: ?>
+                        <div class="meta"><?= esc(forum_date($r['created_at'])) ?></div>
+                    <?php endif ?>
                 </div>
             <?php endforeach?>
         </div>

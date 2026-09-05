@@ -7,7 +7,7 @@ use RuntimeException;
 
 final class InstallService
 {
-    public function install(string $token, string $username, string $password): void
+    public function install(string $token, string $username, string $password, string $email = ''): void
     {
         $expected = (string) env('INSTALL_TOKEN', '');
         if ($expected === '' || !hash_equals($expected, $token)) {
@@ -15,6 +15,10 @@ final class InstallService
         }
         if (!preg_match('/^[a-z0-9]{3,12}$/', $username) || strlen($password) < 12) {
             throw new RuntimeException('管理员用户名或密码不符合要求。');
+        }
+        $email = strtolower(trim($email));
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 254) {
+            throw new RuntimeException('请填写有效的管理员邮箱。');
         }
 
         $mutex = fopen(WRITEPATH . 'install.mutex', 'c+');
@@ -63,7 +67,7 @@ final class InstallService
             if (!$existing) {
                 $user = new User([
                     'username' => $username,
-                    'email' => $username . '@local.invalid',
+                    'email' => $email,
                     'password' => $password,
                     'active' => 1,
                 ]);

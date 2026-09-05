@@ -40,6 +40,27 @@ final class ImageStorage
         if (!$image) {
             throw new RuntimeException('图片内容无法解码。', 422);
         }
+        if ($bucket === 'avatars') {
+            $side = min($size[0], $size[1]);
+            $scaled = imagecreatetruecolor(256, 256);
+            imagealphablending($scaled, false);
+            imagesavealpha($scaled, true);
+            imagefill($scaled, 0, 0, imagecolorallocatealpha($scaled, 255, 255, 255, 127));
+            imagecopyresampled(
+                $scaled,
+                $image,
+                0,
+                0,
+                (int) (($size[0] - $side) / 2),
+                (int) (($size[1] - $side) / 2),
+                256,
+                256,
+                $side,
+                $side,
+            );
+            imagedestroy($image);
+            $image = $scaled;
+        }
         $folder = $bucket === 'editor' ? 'editor/' . gmdate('Y/m') : 'avatars';
         $absolute = FCPATH . 'uploads/' . $folder;
         if (!is_dir($absolute) && !mkdir($absolute, 0755, true) && !is_dir($absolute)) {

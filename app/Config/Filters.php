@@ -42,6 +42,8 @@ class Filters extends BaseFilters
         'group' => GroupFilter::class,
         'auth-rates' => AuthRates::class,
         'installed' => InstallLock::class,
+        'active-account' => \App\Filters\ActiveAccount::class,
+        'page-views' => \App\Filters\PageViews::class,
     ];
 
     /**
@@ -84,10 +86,12 @@ class Filters extends BaseFilters
             'csrf' => ['except' => ['health/*']],
             'invalidchars',
             'installed' => ['except' => ['install', 'health/*']],
+            'active-account' => ['except' => ['install', 'health/*']],
         ],
         'after' => [
             // 'honeypot',
             'secureheaders',
+            'page-views',
         ],
     ];
 

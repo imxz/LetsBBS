@@ -138,7 +138,7 @@ final class MySQL84IntegrationTest extends CIUnitTestCase
             $nodeId = (int) $db->table('nodes')->select('id')->get()->getRow()->id;
             $topicId = new \App\Services\TopicService()->create(
                 $ids[0],
-                $nodeId,
+                (int) new \App\Models\ForumModel()->postableNodes()[0]['id'],
                 'integration ' . bin2hex(random_bytes(3)),
                 '<p>Hello<script>alert(1)</script></p>',
             );
@@ -276,7 +276,7 @@ final class MySQL84IntegrationTest extends CIUnitTestCase
             }
             $targetName = (string) $db->table('users')->select('username')->where('id', $ids[2])->get()->getRow()
                 ->username;
-            $nodeId = (int) $db->table('nodes')->select('id')->where('is_active', 1)->get()->getRow()->id;
+            $nodeId = (int) new \App\Models\ForumModel()->postableNodes()[0]['id'];
             $settings->save(['topic_requires_approval' => '0', 'comment_requires_approval' => '0']);
             $topicId = new \App\Services\TopicService()->create(
                 $ids[0],
@@ -343,7 +343,7 @@ final class MySQL84IntegrationTest extends CIUnitTestCase
         ]);
         $userId = (int) $db->insertID();
         $db->table('user_profiles')->insert(['user_id' => $userId, 'created_at' => $now, 'updated_at' => $now]);
-        $node = $db->table('nodes')->select('id,topic_count')->where('is_active', 1)->get()->getRowArray();
+        $node = new \App\Models\ForumModel()->postableNodes()[0];
         $topicId = null;
         try {
             $settings->save(['topic_requires_approval' => '1']);
@@ -354,7 +354,7 @@ final class MySQL84IntegrationTest extends CIUnitTestCase
                 '<p>pending</p>',
             );
             $topic = $db->table('topics')->where('id', $topicId)->get()->getRowArray();
-            $this->assertSame('hidden', $topic['status']);
+            $this->assertSame('pending', $topic['status']);
             $this->assertSame(
                 (int) $node['topic_count'],
                 (int) $db->table('nodes')->select('topic_count')->where('id', $node['id'])->get()->getRow()

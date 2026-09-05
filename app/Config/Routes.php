@@ -33,13 +33,13 @@ $routes->get('member/(:segment)/comment/(:num)', 'Member::comments/$1/$2');
 $routes->match(['GET', 'POST'], 'register', 'Auth::register');
 $routes->match(['GET', 'POST'], 'reg', 'Auth::register');
 $routes->match(['GET', 'POST'], 'login', 'Auth::login', ['as' => 'login']);
-$routes->get('login/magic-link', '\CodeIgniter\Shield\Controllers\MagicLinkController::loginView', [
+$routes->get('login/magic-link', 'Recovery::loginView', [
     'as' => 'magic-link',
 ]);
-$routes->post('login/magic-link', '\CodeIgniter\Shield\Controllers\MagicLinkController::loginAction', [
+$routes->post('login/magic-link', 'Recovery::loginAction', [
     'filter' => 'auth-rates',
 ]);
-$routes->get('login/verify-magic-link', '\CodeIgniter\Shield\Controllers\MagicLinkController::verify', [
+$routes->get('login/verify-magic-link', 'Recovery::verify', [
     'as' => 'verify-magic-link',
 ]);
 $routes->post('logout', 'Auth::logout', ['filter' => 'session']);
@@ -59,11 +59,26 @@ $routes->post('media/images', 'Media::image', ['filter' => 'session']);
 $routes->get('notification/(:num)', 'Notification::index/$1', ['filter' => 'session']);
 $routes->get('notification', 'Notification::index/1', ['filter' => 'session']);
 $routes->post('notification/read', 'Notification::readAll', ['filter' => 'session']);
+$routes->get('my/content', 'Workspace::content/1', ['filter' => 'session']);
+$routes->get('my/content/(:num)', 'Workspace::content/$1', ['filter' => 'session']);
+$routes->match(['GET', 'POST'], 'my/(:segment)/(:num)/edit', 'Workspace::edit/$1/$2', ['filter' => 'session']);
+$routes->get('my/subscriptions', 'Workspace::subscriptions/1', ['filter' => 'session']);
+$routes->get('my/subscriptions/(:num)', 'Workspace::subscriptions/$1', ['filter' => 'session']);
+$routes->match(['GET', 'POST'], 'settings/notifications', 'Workspace::preferences', ['filter' => 'session']);
+$routes->post('topic/(:num)/report', 'Workspace::report/$1', ['filter' => 'session']);
 $routes->match(['GET', 'POST'], 'settings', 'Member::settings', ['filter' => 'session']);
 $routes->match(['GET', 'POST'], 'settings/profile', 'Member::settings', ['filter' => 'session']);
 $routes->match(['GET', 'POST'], 'settings/avatar', 'Member::avatar', ['filter' => 'session']);
 $routes->match(['GET', 'POST'], 'settings/password', 'Member::password', ['filter' => 'session']);
 $routes->group('admin', ['filter' => 'group:admin'], static function (RouteCollection $routes): void {
+    $routes->get('comment', 'Admin::comments/1');
+    $routes->get('comment/page/(:num)', 'Admin::comments/$1');
+    $routes->post('topic/(:num)/flags', 'Admin::topicFlags/$1');
+    $routes->get('logs', 'Admin::logs/1');
+    $routes->get('logs/(:num)', 'Admin::logs/$1');
+    $routes->get('reports', 'Admin::reports/1');
+    $routes->get('reports/(:num)', 'Admin::reports/$1');
+    $routes->post('report/(:num)/resolve', 'Admin::resolveReport/$1');
     $routes->get('/', 'Admin::index');
     $routes->get('topic', 'Admin::topics/1');
     $routes->get('topic/page/(:num)', 'Admin::topics/$1');

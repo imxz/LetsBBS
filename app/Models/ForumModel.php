@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use CodeIgniter\Model;
+use App\Services\ContentPolicy;
 
 final class ForumModel extends Model
 {
@@ -38,34 +39,15 @@ final class ForumModel extends Model
                 false,
             )
             ->join('users reply_user', 'reply_user.id=last_reply.user_id', 'left')
-            ->where('t.status', 'published');
+            ->where(ContentPolicy::topicSql(), null, false);
         if ($nodeId) {
             $b->where('t.node_id', $nodeId);
         }
         if ($search !== '') {
-            if ($searchType === 'comments') {
-                $b->join(
-                    'comments search_comment',
-                    "search_comment.topic_id=t.id AND search_comment.status='published'",
-                    'inner',
-                    false,
-                )->like('search_comment.body', $search);
-            } elseif ($searchType === 'all') {
-                $b->join(
-                    'comments search_comment',
-                    "search_comment.topic_id=t.id AND search_comment.status='published'",
-                    'left',
-                    false,
-                )
-                    ->groupStart()
-                    ->like('t.title', $search)
-                    ->orLike('t.body', $search)
-                    ->orLike('search_comment.body', $search)
-                    ->groupEnd();
-            } else {
-                $b->groupStart()->like('t.title', $search)->orLike('t.body', $search)->groupEnd();
-            }
-            $b->groupBy('t.id');
+            $b->groupStart()
+                ->like('t.title', $search)
+                ->orWhere(ContentPolicy::bodyLike($this->db, 't.body', $search), null, false)
+                ->groupEnd();
         }
         if ($viewerId !== null) {
             if ($filter === 'nodes') {
@@ -81,6 +63,7 @@ final class ForumModel extends Model
         }
 
         return $b
+            ->orderBy('t.is_pinned', 'DESC')
             ->orderBy($latest ? 't.created_at' : 't.last_activity_at', 'DESC')
             ->orderBy('t.id', 'DESC')
             ->limit(self::PAGE_SIZE + 1, ($page - 1) * self::PAGE_SIZE)
@@ -91,8 +74,8 @@ final class ForumModel extends Model
     public function nodes(): array
     {
         return $this->db
-            ->table('nodes')
-            ->where('is_active', 1)
+            ->table('nodes n')
+            ->where(ContentPolicy::nodeSql(), null, false)
             ->orderBy('parent_id IS NOT NULL', 'ASC', false)
             ->orderBy('sort_order')
             ->orderBy('id')
@@ -103,8 +86,9 @@ final class ForumModel extends Model
     public function nodeById(int $id): ?array
     {
         return $this->db
-            ->table('nodes')
-            ->where(['id' => $id, 'is_active' => 1])
+            ->table('nodes n')
+            ->where('id', $id)
+            ->where(ContentPolicy::nodeSql(), null, false)
             ->get()
             ->getRowArray();
     }
@@ -112,8 +96,9 @@ final class ForumModel extends Model
     public function nodeBySlug(string $slug): ?array
     {
         return $this->db
-            ->table('nodes')
-            ->where(['slug' => $slug, 'is_active' => 1])
+            ->table('nodes n')
+            ->where('slug', $slug)
+            ->where(ContentPolicy::nodeSql(), null, false)
             ->get()
             ->getRowArray();
     }
@@ -124,13 +109,22 @@ final class ForumModel extends Model
             ->table('nodes n')
             ->select('n.*,p.name parent_name')
             ->join('nodes p', 'p.id=n.parent_id', 'left')
-            ->where('n.is_active', 1);
+            ->groupStart()
+            ->groupStart()
+            ->where(ContentPolicy::nodeSql(), null, false)
+            ->where('n.accepts_posts', 1)
+            ->where('(p.id IS NULL OR p.accepts_posts=1)', null, false);
         $postable = 'NOT EXISTS (SELECT 1 FROM nodes child WHERE child.parent_id=n.id AND child.is_active=1)';
         $builder->where(
             $includeNodeId === null ? $postable : '(' . $postable . ' OR n.id=' . (int) $includeNodeId . ')',
             null,
             false,
         );
+        $builder->groupEnd();
+        if ($includeNodeId !== null) {
+            $builder->orWhere('n.id', $includeNodeId);
+        }
+        $builder->groupEnd();
 
         return $builder
             ->orderBy('n.parent_id IS NOT NULL', 'ASC', false)
@@ -143,10 +137,10 @@ final class ForumModel extends Model
     public function hotTopics(int $limit = 15): array
     {
         return $this->db
-            ->table('topics')
+            ->table('topics t')
             ->select('id,title,comment_count,view_count')
-            ->where('status', 'published')
-            ->where('last_activity_at >=', gmdate('Y-m-d H:i:s', time() - 86400 * 90))
+            ->where(ContentPolicy::topicSql(), null, false)
+            ->where('created_at >=', gmdate('Y-m-d H:i:s', time() - 86400 * 90))
             ->orderBy('(view_count + comment_count * 5)', 'DESC', false)
             ->orderBy('last_activity_at', 'DESC')
             ->limit($limit)
@@ -159,11 +153,12 @@ final class ForumModel extends Model
     {
         return [
             'users' => $this->db->table('users')->where('active', 1)->countAllResults(),
-            'topics' => $this->db->table('topics')->where('status', 'published')->countAllResults(),
+            'topics' => $this->db->table('topics t')->where(ContentPolicy::topicSql(), null, false)->countAllResults(),
             'comments' => $this->db
                 ->table('comments c')
                 ->join('topics t', 't.id=c.topic_id')
-                ->where(['c.status' => 'published', 't.status' => 'published'])
+                ->where('c.status', 'published')
+                ->where(ContentPolicy::topicSql(), null, false)
                 ->countAllResults(),
         ];
     }
@@ -207,10 +202,8 @@ final class ForumModel extends Model
             ->join('users u', 'u.id=t.user_id')
             ->join('user_profiles p', 'p.user_id=t.user_id', 'left')
             ->where('t.id', $id);
-        if ($moderator) {
-            $builder->where('t.status !=', 'deleted');
-        } else {
-            $builder->where('t.status', 'published');
+        if (!$moderator) {
+            $builder->where(ContentPolicy::topicSql(), null, false);
         }
 
         return $builder->get()->getRowArray();
@@ -221,7 +214,7 @@ final class ForumModel extends Model
         $this->db->query("UPDATE topics SET view_count=view_count+1 WHERE id=? AND status='published'", [$id]);
     }
 
-    public function comments(int $topicId): array
+    public function comments(int $topicId, int $page = 1): array
     {
         return $this->db
             ->table('comments c')
@@ -230,11 +223,12 @@ final class ForumModel extends Model
             ->join('user_profiles p', 'p.user_id=c.user_id', 'left')
             ->where(['c.topic_id' => $topicId, 'c.status' => 'published'])
             ->orderBy('c.id')
+            ->limit(31, (max(1, $page) - 1) * 30)
             ->get()
             ->getResultArray();
     }
 
-    public function searchMembers(string $query, int $limit = 20): array
+    public function searchMembers(string $query, int $page = 1): array
     {
         return $this->db
             ->table('users u')
@@ -248,7 +242,7 @@ final class ForumModel extends Model
             ->orLike('p.location', $query)
             ->groupEnd()
             ->orderBy('u.id', 'DESC')
-            ->limit($limit)
+            ->limit(self::PAGE_SIZE + 1, (max(1, $page) - 1) * self::PAGE_SIZE)
             ->get()
             ->getResultArray();
     }
@@ -256,5 +250,21 @@ final class ForumModel extends Model
     public function follows(string $table, array $where): bool
     {
         return (bool) $this->db->table($table)->where($where)->countAllResults();
+    }
+
+    public function searchComments(string $query, int $page): array
+    {
+        return $this->db
+            ->table('comments c')
+            ->select('c.*,t.title,u.username')
+            ->join('topics t', 't.id=c.topic_id')
+            ->join('users u', 'u.id=c.user_id')
+            ->where('c.status', 'published')
+            ->where(ContentPolicy::topicSql(), null, false)
+            ->where(ContentPolicy::bodyLike($this->db, 'c.body', $query), null, false)
+            ->orderBy('c.id', 'DESC')
+            ->limit(self::PAGE_SIZE + 1, (max(1, $page) - 1) * self::PAGE_SIZE)
+            ->get()
+            ->getResultArray();
     }
 }

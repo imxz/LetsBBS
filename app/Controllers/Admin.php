@@ -29,12 +29,19 @@ final class Admin extends BaseController
     {
         $page = max(1, $page);
         $query = mb_substr(trim((string) $this->request->getGet('q')), 0, 80);
+        $statusFilter = $pending ? 'pending' : (string) $this->request->getGet('status');
+        if (!in_array($statusFilter, ['published', 'pending', 'hidden', 'deleted'], true)) {
+            $statusFilter = '';
+        }
         $builder = db_connect()
             ->table('topics t')
             ->select('t.*,u.username,n.name node_name')
             ->join('users u', 'u.id=t.user_id')
             ->join('nodes n', 'n.id=t.node_id')
-            ->where($pending ? 't.status' : 't.status !=', $pending ? 'hidden' : 'deleted');
+            ->where(
+                $statusFilter !== '' ? 't.status' : 't.status !=',
+                $statusFilter !== '' ? $statusFilter : 'deleted',
+            );
         if ($query !== '') {
             $builder->like('t.title', $query);
         }
@@ -44,18 +51,6 @@ final class Admin extends BaseController
             ->get()
             ->getResultArray();
         $comments = [];
-        if ($pending) {
-            $comments = db_connect()
-                ->table('comments c')
-                ->select('c.*,u.username,t.title')
-                ->join('users u', 'u.id=c.user_id')
-                ->join('topics t', 't.id=c.topic_id')
-                ->where('c.status', 'hidden')
-                ->orderBy('c.id', 'DESC')
-                ->limit(50)
-                ->get()
-                ->getResultArray();
-        }
 
         return view('admin/topics', [
             'title' => $pending ? '待审核主题' : '所有主题',
@@ -63,6 +58,7 @@ final class Admin extends BaseController
             'topics' => array_slice($rows, 0, self::PAGE_SIZE),
             'pendingComments' => $comments,
             'query' => $query,
+            'statusFilter' => $statusFilter,
             'page' => $page,
             'hasNext' => count($rows) > self::PAGE_SIZE,
             'basePath' => $pending ? '/admin/topic/verify' : '/admin/topic/page',
@@ -86,11 +82,12 @@ final class Admin extends BaseController
                 }
                 $db->transException(true)->transBegin();
                 $locked = $db->query('SELECT node_id,status FROM topics WHERE id=? FOR UPDATE', [$id])->getRowArray();
-                $node = $db
-                    ->query('SELECT id FROM nodes WHERE id=? AND is_active=1 FOR UPDATE', [$nodeId])
-                    ->getRowArray();
+                $node = $db->query('SELECT id FROM nodes WHERE id=? FOR UPDATE', [$nodeId])->getRowArray();
                 if (!$locked || !$node) {
                     throw new \RuntimeException('主题或节点不存在。');
+                }
+                if ((int) $locked['node_id'] !== $nodeId) {
+                    \App\Services\ContentPolicy::assertPostable($db, $nodeId);
                 }
                 $db->table('topics')
                     ->where('id', $id)
@@ -101,11 +98,12 @@ final class Admin extends BaseController
                         'updated_at' => gmdate('Y-m-d H:i:s'),
                     ]);
                 if ($locked['status'] === 'published' && (int) $locked['node_id'] !== $nodeId) {
-                    $db->query('UPDATE nodes SET topic_count=GREATEST(topic_count-1,0) WHERE id=?', [
+                    $db->query('UPDATE nodes SET topic_count=GREATEST(CAST(topic_count AS SIGNED)-1,0) WHERE id=?', [
                         $locked['node_id'],
                     ]);
                     $db->query('UPDATE nodes SET topic_count=topic_count+1 WHERE id=?', [$nodeId]);
                 }
+                \App\Services\ModerationLog::record('topic', $id, 'edit');
                 $db->transCommit();
 
                 return redirect()->to('/admin/topic')->with('success', '主题已更新。');
@@ -130,7 +128,7 @@ final class Admin extends BaseController
     public function moderate(int $id)
     {
         $status = (string) $this->request->getPost('status');
-        if (!in_array($status, ['published', 'hidden', 'deleted'], true)) {
+        if (!in_array($status, ['published', 'pending', 'hidden', 'deleted'], true)) {
             return $this->response->setStatusCode(422);
         }
         $db = db_connect();
@@ -146,18 +144,22 @@ final class Admin extends BaseController
             $will = $status === 'published';
             $db->table('topics')
                 ->where('id', $id)
-                ->update(['status' => $status, 'updated_at' => gmdate('Y-m-d H:i:s')]);
+                ->update([
+                    'status' => $status,
+                    'moderation_reason' => mb_substr(trim((string) $this->request->getPost('reason')), 0, 500),
+                    'updated_at' => gmdate('Y-m-d H:i:s'),
+                ]);
             if ($was !== $will) {
                 $delta = $will ? 1 : -1;
                 $now = gmdate('Y-m-d H:i:s');
-                $db->query('UPDATE nodes SET topic_count=GREATEST(topic_count+?,0) WHERE id=?', [
+                $db->query('UPDATE nodes SET topic_count=GREATEST(CAST(topic_count AS SIGNED)+?,0) WHERE id=?', [
                     $delta,
                     $topic['node_id'],
                 ]);
-                $db->query('UPDATE user_profiles SET topic_count=GREATEST(topic_count+?,0) WHERE user_id=?', [
-                    $delta,
-                    $topic['user_id'],
-                ]);
+                $db->query(
+                    'UPDATE user_profiles SET topic_count=GREATEST(CAST(topic_count AS SIGNED)+?,0) WHERE user_id=?',
+                    [$delta, $topic['user_id']],
+                );
                 new ContentCounters($db)->adjustVisibleCommentsForTopic($id, $delta, $now);
                 if ($will) {
                     $db->table('topic_follows')
@@ -178,6 +180,12 @@ final class Admin extends BaseController
                         )
                         ->getResultArray();
                     foreach ($recipients as $recipient) {
+                        if (!new \App\Models\ForumModel()->topic($id)) {
+                            break;
+                        }
+                        if (!\App\Services\TopicService::wantsNotification($db, (int) $recipient['user_id'], 'topic')) {
+                            continue;
+                        }
                         $notification = [
                             'user_id' => $recipient['user_id'],
                             'actor_id' => $topic['user_id'],
@@ -189,6 +197,12 @@ final class Admin extends BaseController
                         }
                     }
                 }
+            }
+            if ($topic['status'] !== $status) {
+                \App\Services\ModerationLog::record('topic', $id, $status, (string) $this->request->getPost('reason'), [
+                    'before' => $topic['status'],
+                ]);
+                $this->notifyModeration((int) $topic['user_id'], $id);
             }
             $db->transCommit();
         } catch (\Throwable $e) {
@@ -202,7 +216,7 @@ final class Admin extends BaseController
     public function moderateComment(int $id)
     {
         $status = (string) $this->request->getPost('status');
-        if (!in_array($status, ['published', 'hidden', 'deleted'], true)) {
+        if (!in_array($status, ['published', 'pending', 'hidden', 'deleted'], true)) {
             return $this->response->setStatusCode(422);
         }
         $db = db_connect();
@@ -217,22 +231,30 @@ final class Admin extends BaseController
             if (!$comment) {
                 throw PageNotFoundException::forPageNotFound();
             }
+            if ($status === 'published' && $comment['topic_status'] !== 'published') {
+                $db->transRollback();
+                return redirect()->back()->with('error', '请先发布所属主题，再通过回复审核。');
+            }
             $was = $comment['status'] === 'published';
             $will = $status === 'published';
             $db->table('comments')
                 ->where('id', $id)
-                ->update(['status' => $status, 'updated_at' => gmdate('Y-m-d H:i:s')]);
+                ->update([
+                    'status' => $status,
+                    'moderation_reason' => mb_substr(trim((string) $this->request->getPost('reason')), 0, 500),
+                    'updated_at' => gmdate('Y-m-d H:i:s'),
+                ]);
             if ($was !== $will) {
                 $delta = $will ? 1 : -1;
-                $db->query('UPDATE topics SET comment_count=GREATEST(comment_count+?,0) WHERE id=?', [
+                $db->query('UPDATE topics SET comment_count=GREATEST(CAST(comment_count AS SIGNED)+?,0) WHERE id=?', [
                     $delta,
                     $comment['topic_id'],
                 ]);
                 if ($comment['topic_status'] === 'published') {
-                    $db->query('UPDATE user_profiles SET comment_count=GREATEST(comment_count+?,0) WHERE user_id=?', [
-                        $delta,
-                        $comment['user_id'],
-                    ]);
+                    $db->query(
+                        'UPDATE user_profiles SET comment_count=GREATEST(CAST(comment_count AS SIGNED)+?,0) WHERE user_id=?',
+                        [$delta, $comment['user_id']],
+                    );
                 }
             }
             $db->query(
@@ -243,6 +265,16 @@ final class Admin extends BaseController
                 new \App\Services\TopicService($db)->notifyPublishedComment($id);
             } else {
                 $db->table('notifications')->where('comment_id', $id)->delete();
+            }
+            if ($comment['status'] !== $status) {
+                \App\Services\ModerationLog::record(
+                    'comment',
+                    $id,
+                    $status,
+                    (string) $this->request->getPost('reason'),
+                    ['before' => $comment['status']],
+                );
+                $this->notifyModeration((int) $comment['user_id'], (int) $comment['topic_id'], $id);
             }
             $db->transCommit();
         } catch (\Throwable $e) {
@@ -297,6 +329,7 @@ final class Admin extends BaseController
 
     public function userEdit(int $id)
     {
+        $db = db_connect();
         $provider = auth()->getProvider();
         $user = $provider->findById($id);
         $profile = db_connect()->table('user_profiles')->where('user_id', $id)->get()->getRowArray();
@@ -305,7 +338,7 @@ final class Admin extends BaseController
         }
         if ($this->request->getMethod() === 'POST') {
             try {
-                $username = trim((string) $this->request->getPost('username'));
+                $username = strtolower(trim((string) $this->request->getPost('username')));
                 $email = strtolower(trim((string) $this->request->getPost('email')));
                 $qq = trim((string) $this->request->getPost('qq'));
                 $homepage = trim((string) $this->request->getPost('homepage'));
@@ -313,11 +346,18 @@ final class Admin extends BaseController
                     $homepage = 'https://' . $homepage;
                 }
                 if (
-                    !preg_match('/\A[a-zA-Z0-9_.-]{3,30}\z/', $username) ||
+                    ($username !== $user->username && !preg_match('/\A[a-z0-9]{3,12}\z/', $username)) ||
                     !filter_var($email, FILTER_VALIDATE_EMAIL)
                 ) {
                     throw new \RuntimeException('用户名或电子邮件格式不正确。');
                 }
+                if ($id === (int) auth()->id() && $this->request->getPost('active') !== '1') {
+                    throw new \RuntimeException('不能停用当前登录的管理员账号。');
+                }
+                if ($homepage !== '' && !filter_var($homepage, FILTER_VALIDATE_URL)) {
+                    throw new \RuntimeException('个人主页格式不正确。');
+                }
+                $db->transException(true)->transBegin();
                 $user->username = $username;
                 $user->email = $email;
                 $user->active = $this->request->getPost('active') === '1' ? 1 : 0;
@@ -337,8 +377,11 @@ final class Admin extends BaseController
                         'updated_at' => gmdate('Y-m-d H:i:s'),
                     ]);
 
+                \App\Services\ModerationLog::record('user', $id, 'edit');
+                $db->transCommit();
                 return redirect()->to('/admin/user')->with('success', '用户资料已更新。');
             } catch (\Throwable $e) {
+                $db->transRollback();
                 return redirect()->back()->withInput()->with('error', $e->getMessage());
             }
         }
@@ -363,6 +406,7 @@ final class Admin extends BaseController
                 'is_muted' => $profile['is_muted'] ? 0 : 1,
                 'updated_at' => gmdate('Y-m-d H:i:s'),
             ]);
+        \App\Services\ModerationLog::record('user', $id, $profile['is_muted'] ? 'unmute' : 'mute');
 
         return redirect()
             ->back()
@@ -455,6 +499,7 @@ final class Admin extends BaseController
                 'featured' => $this->request->getPost('featured') === '1' ? 1 : 0,
                 'show_on_home' => $this->request->getPost('show_on_home') === '1' ? 1 : 0,
                 'is_active' => $this->request->getPost('is_active') === '1' ? 1 : 0,
+                'accepts_posts' => $this->request->getPost('accepts_posts') === '1' ? 1 : 0,
                 'updated_at' => gmdate('Y-m-d H:i:s'),
             ];
             if ($id === null) {
@@ -463,6 +508,7 @@ final class Admin extends BaseController
             } else {
                 $db->table('nodes')->where('id', $id)->update($data);
             }
+            \App\Services\ModerationLog::record('node', $id ?? (int) $db->insertID(), 'save');
 
             return redirect()
                 ->to('/admin/node')
@@ -491,6 +537,17 @@ final class Admin extends BaseController
                 'site_keywords' => mb_substr(trim((string) $this->request->getPost('site_keywords')), 0, 255),
                 'site_description' => mb_substr(trim((string) $this->request->getPost('site_description')), 0, 500),
                 'home_introduction' => mb_substr(trim((string) $this->request->getPost('home_introduction')), 0, 1000),
+                'registration_enabled' => $this->request->getPost('registration_enabled') === '1' ? '1' : '0',
+                'home_node_limit' => (string) max(0, min(100, (int) $this->request->getPost('home_node_limit'))),
+                'site_timezone' => in_array(
+                    $this->request->getPost('site_timezone'),
+                    \DateTimeZone::listIdentifiers(),
+                    true,
+                )
+                    ? $this->request->getPost('site_timezone')
+                    : 'Asia/Shanghai',
+                'footer_text' => mb_substr(trim((string) $this->request->getPost('footer_text')), 0, 500),
+                'analytics_enabled' => $this->request->getPost('analytics_enabled') === '1' ? '1' : '0',
             ]);
 
             return redirect()->back()->with('success', '基本设置已保存。');
@@ -501,6 +558,12 @@ final class Admin extends BaseController
             'section' => 'settings-site',
             'mode' => 'site',
             'settings' => $settings->all(),
+            'pageViews' => db_connect()
+                ->table('daily_page_views')
+                ->orderBy('day', 'DESC')
+                ->limit(30)
+                ->get()
+                ->getResultArray(),
         ]);
     }
 
@@ -535,6 +598,128 @@ final class Admin extends BaseController
             ->orderBy('n.id')
             ->get()
             ->getResultArray();
+    }
+
+    private function notifyModeration(int $userId, int $topicId, ?int $commentId = null): void
+    {
+        db_connect()
+            ->table('notifications')
+            ->insert([
+                'user_id' => $userId,
+                'actor_id' => auth()->id(),
+                'topic_id' => $topicId,
+                'comment_id' => $commentId,
+                'kind' => 'moderation',
+                'created_at' => gmdate('Y-m-d H:i:s'),
+            ]);
+    }
+
+    public function comments(int $page = 1)
+    {
+        $page = max(1, $page);
+        $status = (string) $this->request->getGet('status');
+        if (!in_array($status, ['published', 'pending', 'hidden', 'deleted'], true)) {
+            $status = 'pending';
+        }
+        $query = mb_substr(trim((string) $this->request->getGet('q')), 0, 80);
+        $builder = db_connect()
+            ->table('comments c')
+            ->select('c.*,u.username,t.title,t.status topic_status')
+            ->join('users u', 'u.id=c.user_id')
+            ->join('topics t', 't.id=c.topic_id')
+            ->where('c.status', $status);
+        if ($query !== '') {
+            $builder
+                ->groupStart()
+                ->where(\App\Services\ContentPolicy::bodyLike(db_connect(), 'c.body', $query), null, false)
+                ->orLike('t.title', $query)
+                ->orLike('u.username', $query)
+                ->groupEnd();
+        }
+        $rows = $builder
+            ->orderBy('c.id', 'DESC')
+            ->limit(21, ($page - 1) * 20)
+            ->get()
+            ->getResultArray();
+        return view('admin/comments', [
+            'title' => '回复管理',
+            'section' => 'comments',
+            'rows' => array_slice($rows, 0, 20),
+            'hasNext' => count($rows) > 20,
+            'page' => $page,
+            'statusFilter' => $status,
+            'query' => $query,
+        ]);
+    }
+
+    public function topicFlags(int $id)
+    {
+        $db = db_connect();
+        $topic = $db->table('topics')->where('id', $id)->get()->getRowArray();
+        if (!$topic) {
+            throw PageNotFoundException::forPageNotFound();
+        }
+        $flags = [
+            'is_pinned' => $this->request->getPost('is_pinned') === '1' ? 1 : 0,
+            'is_locked' => $this->request->getPost('is_locked') === '1' ? 1 : 0,
+        ];
+        $db->table('topics')->where('id', $id)->update($flags);
+        \App\Services\ModerationLog::record('topic', $id, 'flags', '', $flags);
+        return redirect()->back()->with('success', '置顶和锁帖设置已保存。');
+    }
+
+    public function logs(int $page = 1)
+    {
+        $page = max(1, $page);
+        $rows = db_connect()
+            ->table('moderation_logs l')
+            ->select('l.*,u.username')
+            ->join('users u', 'u.id=l.actor_id', 'left')
+            ->orderBy('l.id', 'DESC')
+            ->limit(31, ($page - 1) * 30)
+            ->get()
+            ->getResultArray();
+        return view('admin/logs', [
+            'title' => '操作记录',
+            'section' => 'logs',
+            'rows' => array_slice($rows, 0, 30),
+            'hasNext' => count($rows) > 30,
+            'page' => $page,
+        ]);
+    }
+
+    public function reports(int $page = 1)
+    {
+        $page = max(1, $page);
+        $status = $this->request->getGet('status') === 'resolved' ? 'resolved' : 'open';
+        $rows = db_connect()
+            ->table('reports r')
+            ->select('r.*,u.username,t.title')
+            ->join('users u', 'u.id=r.user_id')
+            ->join('topics t', 't.id=r.topic_id')
+            ->where('r.status', $status)
+            ->orderBy('r.id', 'DESC')
+            ->limit(21, ($page - 1) * 20)
+            ->get()
+            ->getResultArray();
+        return view('admin/reports', [
+            'title' => '举报处理',
+            'section' => 'reports',
+            'rows' => array_slice($rows, 0, 20),
+            'hasNext' => count($rows) > 20,
+            'page' => $page,
+            'statusFilter' => $status,
+        ]);
+    }
+
+    public function resolveReport(int $id)
+    {
+        db_connect()
+            ->table('reports')
+            ->where('id', $id)
+            ->update(['status' => 'resolved', 'updated_at' => gmdate('Y-m-d H:i:s')]);
+        \App\Services\ModerationLog::record('report', $id, 'resolved', (string) $this->request->getPost('reason'));
+        return redirect()->back()->with('success', '举报已标为处理完成。');
     }
 
     private function rootNodes(): array

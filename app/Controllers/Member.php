@@ -18,6 +18,17 @@ final class Member extends BaseController
         if (!$row) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
         }
+        $row['topic_count'] = db_connect()
+            ->table('topics t')
+            ->where('t.user_id', $row['id'])
+            ->where(\App\Services\ContentPolicy::topicSql(), null, false)
+            ->countAllResults();
+        $row['comment_count'] = db_connect()
+            ->table('comments c')
+            ->join('topics t', 't.id=c.topic_id')
+            ->where(['c.user_id' => $row['id'], 'c.status' => 'published'])
+            ->where(\App\Services\ContentPolicy::topicSql(), null, false)
+            ->countAllResults();
         return $row;
     }
 
@@ -26,9 +37,15 @@ final class Member extends BaseController
         $member = $this->member($username);
         $db = db_connect();
         $topics = $db
-            ->table('topics')
-            ->where(['user_id' => $member['id'], 'status' => 'published'])
-            ->orderBy('id', 'DESC')
+            ->table('topics t')
+            ->select(
+                't.*,n.name node_name,n.slug node_slug,(SELECT u.username FROM comments c JOIN users u ON u.id=c.user_id WHERE c.topic_id=t.id AND c.status=\'published\' ORDER BY c.id DESC LIMIT 1) last_reply_username',
+                false,
+            )
+            ->join('nodes n', 'n.id=t.node_id')
+            ->where('t.user_id', $member['id'])
+            ->where(\App\Services\ContentPolicy::topicSql(), null, false)
+            ->orderBy('t.id', 'DESC')
             ->limit(self::PAGE_SIZE)
             ->get()
             ->getResultArray();
@@ -37,7 +54,8 @@ final class Member extends BaseController
             ->select('c.id,c.topic_id,c.body,c.created_at,t.title,u.username topic_author')
             ->join('topics t', 't.id=c.topic_id')
             ->join('users u', 'u.id=t.user_id')
-            ->where(['c.user_id' => $member['id'], 'c.status' => 'published', 't.status' => 'published'])
+            ->where(['c.user_id' => $member['id'], 'c.status' => 'published'])
+            ->where(\App\Services\ContentPolicy::topicSql(), null, false)
             ->orderBy('c.id', 'DESC')
             ->limit(self::PAGE_SIZE)
             ->get()
@@ -68,9 +86,15 @@ final class Member extends BaseController
         $page = max(1, $page);
         $m = $this->member($username);
         $rows = db_connect()
-            ->table('topics')
-            ->where(['user_id' => $m['id'], 'status' => 'published'])
-            ->orderBy('id', 'DESC')
+            ->table('topics t')
+            ->select(
+                't.*,n.name node_name,n.slug node_slug,(SELECT u.username FROM comments c JOIN users u ON u.id=c.user_id WHERE c.topic_id=t.id AND c.status=\'published\' ORDER BY c.id DESC LIMIT 1) last_reply_username',
+                false,
+            )
+            ->join('nodes n', 'n.id=t.node_id')
+            ->where('t.user_id', $m['id'])
+            ->where(\App\Services\ContentPolicy::topicSql(), null, false)
+            ->orderBy('t.id', 'DESC')
             ->limit(self::PAGE_SIZE + 1, ($page - 1) * self::PAGE_SIZE)
             ->get()
             ->getResultArray();
@@ -95,7 +119,8 @@ final class Member extends BaseController
             ->table('comments c')
             ->select('c.*,t.title')
             ->join('topics t', 't.id=c.topic_id')
-            ->where(['c.user_id' => $m['id'], 'c.status' => 'published', 't.status' => 'published'])
+            ->where(['c.user_id' => $m['id'], 'c.status' => 'published'])
+            ->where(\App\Services\ContentPolicy::topicSql(), null, false)
             ->orderBy('c.id', 'DESC')
             ->limit(self::PAGE_SIZE + 1, ($page - 1) * self::PAGE_SIZE)
             ->get()
@@ -174,7 +199,7 @@ final class Member extends BaseController
         try {
             $file = $this->request->getFile('avatar');
             $storage = new \App\Services\ImageStorage();
-            $path = $storage->store($file, 'avatars', 512, 2 * 1024 * 1024);
+            $path = $storage->store($file, 'avatars', 6000, 5 * 1024 * 1024);
             $db = db_connect();
             $oldPath =
                 $db->table('user_profiles')->select('avatar')->where('user_id', auth()->id())->get()->getRowArray()[

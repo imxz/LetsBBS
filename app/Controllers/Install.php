@@ -17,6 +17,7 @@ final class Install extends BaseController
                     (string) $this->request->getPost('install_token'),
                     (string) $this->request->getPost('username'),
                     (string) $this->request->getPost('password'),
+                    (string) $this->request->getPost('email'),
                 );
                 return redirect()->to('/')->with('success', '安装完成，请登录。');
             } catch (\Throwable $e) {

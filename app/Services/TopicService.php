@@ -25,15 +25,18 @@ final class TopicService
         }
         $status =
             !$bypassApproval && service('siteSettings')->get('topic_requires_approval', '0') === '1'
-                ? 'hidden'
+                ? 'pending'
                 : 'published';
         $now = gmdate('Y-m-d H:i:s');
         return $this->transaction(function () use ($userId, $nodeId, $title, $body, $status, $now): int {
-            $node = $this->db
-                ->query('SELECT id FROM nodes WHERE id=? AND is_active=1 FOR UPDATE', [$nodeId])
-                ->getRowArray();
-            if (!$node) {
-                throw new RuntimeException('节点不存在或已停用。');
+            ContentPolicy::assertPostable($this->db, $nodeId);
+            $duplicate = $this->recentDuplicate('topics', $userId, [
+                'node_id' => $nodeId,
+                'title' => $title,
+                'body' => $body,
+            ]);
+            if ($duplicate !== null) {
+                return $duplicate;
             }
             $this->db->table('topics')->insert([
                 'node_id' => $nodeId,
@@ -65,6 +68,9 @@ final class TopicService
                     )
                     ->getResultArray();
                 foreach ($recipients as $r) {
+                    if (!self::wantsNotification($this->db, (int) $r['user_id'], 'topic')) {
+                        continue;
+                    }
                     $this->db->table('notifications')->insert([
                         'user_id' => $r['user_id'],
                         'actor_id' => $userId,
@@ -86,15 +92,26 @@ final class TopicService
         }
         $status =
             !$bypassApproval && service('siteSettings')->get('comment_requires_approval', '0') === '1'
-                ? 'hidden'
+                ? 'pending'
                 : 'published';
         $now = gmdate('Y-m-d H:i:s');
         return $this->transaction(function () use ($userId, $topicId, $body, $status, $now): int {
             $topic = $this->db
-                ->query('SELECT user_id FROM topics WHERE id=? AND status=? FOR UPDATE', [$topicId, 'published'])
+                ->query('SELECT user_id,node_id,is_locked FROM topics WHERE id=? AND status=? FOR UPDATE', [
+                    $topicId,
+                    'published',
+                ])
                 ->getRowArray();
             if (!$topic) {
                 throw new RuntimeException('主题不存在或不可回复。');
+            }
+            ContentPolicy::assertPostable($this->db, (int) $topic['node_id'], false);
+            if ($topic['is_locked'] && !auth()->user()?->inGroup('admin')) {
+                throw new RuntimeException('主题已锁定，暂不接受回复。');
+            }
+            $duplicate = $this->recentDuplicate('comments', $userId, ['topic_id' => $topicId, 'body' => $body]);
+            if ($duplicate !== null) {
+                return $duplicate;
             }
             $this->db->table('comments')->insert([
                 'topic_id' => $topicId,
@@ -126,7 +143,8 @@ final class TopicService
             ->table('comments c')
             ->select('c.id,c.topic_id,c.user_id,c.body')
             ->join('topics t', 't.id=c.topic_id')
-            ->where(['c.id' => $commentId, 'c.status' => 'published', 't.status' => 'published'])
+            ->where(['c.id' => $commentId, 'c.status' => 'published'])
+            ->where(ContentPolicy::topicSql(), null, false)
             ->get()
             ->getRowArray();
         if (!$comment) {
@@ -161,7 +179,7 @@ final class TopicService
                 ->getResultArray();
             foreach ($members as $member) {
                 $recipientId = (int) $member['id'];
-                if ($recipientId === $userId) {
+                if ($recipientId === $userId || !self::wantsNotification($this->db, $recipientId, 'mention')) {
                     continue;
                 }
                 $mentioned[$recipientId] = true;
@@ -211,6 +229,9 @@ final class TopicService
     /** @param array<string, int|string> $notification */
     private function insertNotificationOnce(array $notification): void
     {
+        if (!self::wantsNotification($this->db, (int) $notification['user_id'], (string) $notification['kind'])) {
+            return;
+        }
         $identity = array_intersect_key(
             $notification,
             array_flip(['user_id', 'actor_id', 'topic_id', 'comment_id', 'kind']),
@@ -218,6 +239,25 @@ final class TopicService
         if (!$this->db->table('notifications')->where($identity)->countAllResults()) {
             $this->db->table('notifications')->insert($notification);
         }
+    }
+
+    public static function wantsNotification(BaseConnection $db, int $userId, string $kind): bool
+    {
+        $column =
+            [
+                'topic' => 'notify_topics',
+                'comment' => 'notify_comments',
+                'mention' => 'notify_mentions',
+                'follow' => 'notify_follows',
+            ][$kind] ?? null;
+        $user = $db
+            ->table('users u')
+            ->select('u.active,p.*')
+            ->join('user_profiles p', 'p.user_id=u.id')
+            ->where('u.id', $userId)
+            ->get()
+            ->getRowArray();
+        return $user && $user['active'] && ($column === null || (bool) $user[$column]);
     }
 
     public function delete(int $actorId, int $topicId, bool $admin): void
@@ -235,14 +275,16 @@ final class TopicService
                     ->table('topics')
                     ->where('id', $topicId)
                     ->update(['status' => 'deleted', 'updated_at' => $now]);
+                ModerationLog::record('topic', $topicId, 'deleted', '', ['before' => $topic['status']]);
             }
             if ($topic['status'] === 'published') {
-                $this->db->query('UPDATE nodes SET topic_count=GREATEST(topic_count-1,0) WHERE id=?', [
+                $this->db->query('UPDATE nodes SET topic_count=GREATEST(CAST(topic_count AS SIGNED)-1,0) WHERE id=?', [
                     $topic['node_id'],
                 ]);
-                $this->db->query('UPDATE user_profiles SET topic_count=GREATEST(topic_count-1,0) WHERE user_id=?', [
-                    $topic['user_id'],
-                ]);
+                $this->db->query(
+                    'UPDATE user_profiles SET topic_count=GREATEST(CAST(topic_count AS SIGNED)-1,0) WHERE user_id=?',
+                    [$topic['user_id']],
+                );
                 new ContentCounters($this->db)->adjustVisibleCommentsForTopic($topicId, -1, $now);
             }
         });
@@ -259,5 +301,21 @@ final class TopicService
             $this->db->transRollback();
             throw $e;
         }
+    }
+
+    private function recentDuplicate(string $table, int $userId, array $content): ?int
+    {
+        // The node/topic lock above serializes retries for the same destination.
+        $row = $this->db
+            ->table($table)
+            ->select('id')
+            ->where($content)
+            ->where('user_id', $userId)
+            ->whereIn('status', ['published', 'pending'])
+            ->where('created_at >=', gmdate('Y-m-d H:i:s', time() - 120))
+            ->orderBy('id', 'DESC')
+            ->get()
+            ->getRowArray();
+        return $row ? (int) $row['id'] : null;
     }
 }

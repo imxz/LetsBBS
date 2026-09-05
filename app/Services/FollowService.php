@@ -16,8 +16,9 @@ final class FollowService
     {
         if (
             !$this->db
-                ->table('topics')
-                ->where(['id' => $topicId, 'status' => 'published'])
+                ->table('topics t')
+                ->where('id', $topicId)
+                ->where(ContentPolicy::topicSql(), null, false)
                 ->countAllResults()
         ) {
             throw new RuntimeException('主题不存在或不可关注。');
@@ -25,7 +26,7 @@ final class FollowService
         return $this->toggle(
             'topic_follows',
             ['user_id' => $userId, 'topic_id' => $topicId],
-            'UPDATE topics SET follower_count=GREATEST(follower_count+?,0) WHERE id=?',
+            'UPDATE topics SET follower_count=GREATEST(CAST(follower_count AS SIGNED)+?,0) WHERE id=?',
             $topicId,
         );
     }
@@ -34,8 +35,9 @@ final class FollowService
     {
         if (
             !$this->db
-                ->table('nodes')
-                ->where(['id' => $nodeId, 'is_active' => 1])
+                ->table('nodes n')
+                ->where('id', $nodeId)
+                ->where(ContentPolicy::nodeSql(), null, false)
                 ->countAllResults()
         ) {
             throw new RuntimeException('节点不存在或不可关注。');
@@ -52,15 +54,15 @@ final class FollowService
             $key = ['follower_id' => $userId, 'followed_id' => $targetId];
             $active = $this->insertOrDelete('user_follows', $key);
             $delta = $active ? 1 : -1;
-            $this->db->query('UPDATE user_profiles SET following_count=GREATEST(following_count+?,0) WHERE user_id=?', [
-                $delta,
-                $userId,
-            ]);
-            $this->db->query('UPDATE user_profiles SET follower_count=GREATEST(follower_count+?,0) WHERE user_id=?', [
-                $delta,
-                $targetId,
-            ]);
-            if ($active) {
+            $this->db->query(
+                'UPDATE user_profiles SET following_count=GREATEST(CAST(following_count AS SIGNED)+?,0) WHERE user_id=?',
+                [$delta, $userId],
+            );
+            $this->db->query(
+                'UPDATE user_profiles SET follower_count=GREATEST(CAST(follower_count AS SIGNED)+?,0) WHERE user_id=?',
+                [$delta, $targetId],
+            );
+            if ($active && TopicService::wantsNotification($this->db, $targetId, 'follow')) {
                 $this->db->table('notifications')->insert([
                     'user_id' => $targetId,
                     'actor_id' => $userId,

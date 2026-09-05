@@ -13,7 +13,7 @@
                     <div class="row form-row"><label class="col-sm-3 col-form-label" for="username">用户名</label>
                         <div class="col-sm-9"><input class="form-control" id="username" name="username" maxlength="30"
                                 value="<?= esc(old('username', $member['username'])) ?>" required>
-                            <div class="form-text">修改前请确认用户名未被使用。</div>
+                            <div class="form-text">新用户名须为 3–12 位小写字母或数字。既有用户名可以保持不变。</div>
                         </div>
                     </div>
                     <div class="row form-row"><label class="col-sm-3 col-form-label" for="email">电子邮件</label>

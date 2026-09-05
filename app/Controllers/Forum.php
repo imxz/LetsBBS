@@ -151,13 +151,18 @@ final class Forum extends BaseController
         if ($nodeId && auth()->loggedIn() && !$home) {
             $nodeFollowing = $model->follows('node_follows', ['user_id' => auth()->id(), 'node_id' => $nodeId]);
         }
-        $topics =
-            $searchType === 'members'
-                ? []
-                : $model->listing($page, $nodeId, $latest, $filter, $viewerId, $search, $searchType);
+        $topics = in_array($searchType, ['members', 'comments'], true)
+            ? []
+            : $model->listing($page, $nodeId, $latest, $filter, $viewerId, $search, $searchType);
         $memberMatches =
-            $search !== '' && in_array($searchType, ['all', 'members'], true) ? $model->searchMembers($search) : [];
-        $hasNext = count($topics) > ForumModel::PAGE_SIZE;
+            $search !== '' && in_array($searchType, ['all', 'members'], true)
+                ? $model->searchMembers($search, $page)
+                : [];
+        $replyMatches =
+            $search !== '' && in_array($searchType, ['all', 'comments'], true)
+                ? $model->searchComments($search, $page)
+                : [];
+        $hasNext = max(count($topics), count($memberMatches), count($replyMatches)) > ForumModel::PAGE_SIZE;
         $settings = service('siteSettings');
         $siteName = $settings->get('site_name', 'LetsBBS');
         $title = match ($feed) {
@@ -186,7 +191,15 @@ final class Forum extends BaseController
                 'filter' => $filter,
                 'search' => $search,
                 'searchType' => $searchType,
-                'memberMatches' => $memberMatches,
+                'memberMatches' => array_slice($memberMatches, 0, ForumModel::PAGE_SIZE),
+                'replyMatches' => array_slice($replyMatches, 0, ForumModel::PAGE_SIZE),
+                'metaDescription' => $currentNode['description'] ?? '',
+                'metaKeywords' => $currentNode['keywords'] ?? '',
+                'canonicalPath' => $home
+                    ? '/'
+                    : ($currentNode
+                        ? '/node/' . $currentNode['slug'] . ($page > 1 ? '/' . $page : '')
+                        : null),
                 'previousUrl' =>
                     $page > 1
                         ? $this->pageUrl($page - 1, $currentNode, $search, $searchType, $filter, $home, $feed)
@@ -242,21 +255,59 @@ final class Forum extends BaseController
         if (!$topic) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
         }
-        if ($topic['status'] === 'published') {
+        $public = $model->topic($id) !== null;
+        if ($public) {
             $model->incrementViewCount($id);
             ++$topic['view_count'];
         }
         $following = auth()->loggedIn()
             ? $model->follows('topic_follows', ['user_id' => auth()->id(), 'topic_id' => $id])
             : false;
+        $page = max(1, (int) $this->request->getGet('page'));
+        $replyId = (int) $this->request->getGet('reply');
+        if (
+            $replyId > 0 &&
+            db_connect()
+                ->table('comments')
+                ->where(['id' => $replyId, 'topic_id' => $id, 'status' => 'published'])
+                ->countAllResults()
+        ) {
+            $position = db_connect()
+                ->table('comments')
+                ->where(['topic_id' => $id, 'status' => 'published'])
+                ->where('id <=', $replyId)
+                ->countAllResults();
+            $page = (int) ceil($position / 30);
+        }
+        $comments = $model->comments($id, $page);
+        $node = db_connect()->table('nodes')->where('id', $topic['node_id'])->get()->getRowArray();
+        $parent =
+            $node && $node['parent_id']
+                ? db_connect()->table('nodes')->where('id', $node['parent_id'])->get()->getRowArray()
+                : null;
+        $canReply =
+            $public &&
+            $node['accepts_posts'] &&
+            (!$parent || $parent['accepts_posts']) &&
+            (!$topic['is_locked'] || $moderator);
         return view(
             'forum/topic',
             [
                 'topic' => $topic,
-                'comments' => $model->comments($id),
+                'comments' => array_slice($comments, 0, 30),
+                'page' => $page,
+                'hasNext' => count($comments) > 30,
+                'canReply' => $canReply,
                 'following' => $following,
-                'preview' => $topic['status'] !== 'published',
+                'preview' => !$public,
                 'title' => $topic['title'],
+                'metaDescription' => mb_substr(
+                    html_entity_decode(strip_tags($topic['body']), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+                    0,
+                    160,
+                ),
+                'canonicalPath' => '/topic/' . $id,
+                'noIndex' => !$public,
             ] + $this->sidebarData(),
         );
     }

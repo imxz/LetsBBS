@@ -30,6 +30,7 @@
         <div class="panel-footer">
             <?php if ($viewer):?>
                 <a href="/notification"><?= (int) $viewer['unread_notifications'] ?> 条未读提醒</a>
+                · <a href="/my/subscriptions">管理收藏与关注</a>
             <?php else:?>
                 <a href="/reg">注册</a>　<a href="/login">登录</a>
             <?php endif?>

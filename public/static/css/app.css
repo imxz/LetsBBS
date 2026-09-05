@@ -63,6 +63,7 @@ a:focus {
 }
 
 .site-navbar .nav-link {
+    white-space: nowrap;
     min-height: 50px;
     padding: 15px !important;
     color: #777;
@@ -111,6 +112,12 @@ a:focus {
     width: 100%;
     background: transparent;
     text-align: left;
+}
+
+.site-navbar .dropdown-toggle {
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .site-main {
@@ -648,4 +655,34 @@ blockquote.post-body {
     .captcha-row .form-control {
         max-width: none;
     }
+}
+/* Shared editor and reply navigation. */
+.forum-editor-fullscreen {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    z-index: 1050 !important;
+}
+.post-body pre {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    background: #f6f8fa;
+    padding: 1rem;
+    border-radius: 0.35rem;
+}
+.post-body img {
+    max-width: 100%;
+    height: auto;
+}
+article[id^='comment-'] {
+    scroll-margin-top: 1rem;
+}
+#avatar-preview {
+    width: 160px;
+    height: 160px;
+    object-fit: cover;
+}
+article[id^='comment-'] > span[id] {
+    position: absolute;
 }

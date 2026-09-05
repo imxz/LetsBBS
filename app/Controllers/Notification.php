@@ -11,8 +11,8 @@ final class Notification extends BaseController
             ->table('notifications n')
             ->select('n.*,u.username actor_name,t.title,c.body comment_body')
             ->join('users u', 'u.id=n.actor_id', 'left')
-            ->join('topics t', "t.id=n.topic_id AND t.status='published'", 'left')
-            ->join('comments c', "c.id=n.comment_id AND c.status='published'", 'left')
+            ->join('topics t', 't.id=n.topic_id AND ' . \App\Services\ContentPolicy::topicSql(), 'left', false)
+            ->join('comments c', "c.id=n.comment_id AND c.topic_id=t.id AND c.status='published'", 'left')
             ->where('n.user_id', auth()->id())
             ->orderBy('n.id', 'DESC')
             ->limit(31, ($page - 1) * 30)
@@ -22,6 +22,7 @@ final class Notification extends BaseController
             ->table('notifications')
             ->where('user_id', auth()->id())
             ->where('read_at', null)
+            ->whereIn('id', array_column(array_slice($items, 0, 30), 'id') ?: [0])
             ->update(['read_at' => gmdate('Y-m-d H:i:s')]);
 
         return view(

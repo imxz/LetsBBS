@@ -45,19 +45,20 @@
                                 maxlength="255"
                                 rows="3"><?= esc(old('description', $node['description'] ?? '')) ?></textarea></div>
                     </div>
-                    <?php foreach ([['featured', '首页节点导航', 1], ['show_on_home', '首页置顶按钮', 0], ['is_active', '节点状态', 1]] as [$key, $label, $default]):?>
+                    <?php foreach ([['featured', '首页节点导航', 1], ['show_on_home', '首页置顶按钮', 0], ['is_active', '节点及内容可见', 1], ['accepts_posts', '允许发表与回复', 1]] as [$key, $label, $default]):?>
                         <div class="row form-row"><label class="col-sm-3 col-form-label"
                                 for="<?= $key ?>"><?= $label ?></label>
                             <div class="col-sm-9"><select class="form-select" id="<?= $key ?>" name="<?= $key ?>">
                                     <option value="1"
                                         <?= (int) old($key, $node[$key] ?? $default) === 1 ? 'selected' : '' ?>>
-                                        <?= $key === 'is_active' ? '启用' : '显示' ?></option>
+                                        是</option>
                                     <option value="0"
                                         <?= (int) old($key, $node[$key] ?? $default) === 0 ? 'selected' : '' ?>>
-                                        <?= $key === 'is_active' ? '停用' : '不显示' ?></option>
+                                        否</option>
                                 </select></div>
                         </div>
                     <?php endforeach?>
+                    <p class="form-text">关闭“允许发表与回复”仍可浏览历史内容；关闭“节点及内容可见”会隐藏节点、子节点及其内容。父节点的限制对子节点同时生效。</p>
                     <div class="row">
                         <div class="offset-sm-3 col-sm-9"><button class="btn btn-primary">提交</button></div>
                     </div>

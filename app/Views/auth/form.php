@@ -12,7 +12,9 @@
                     <?= csrf_field() ?>
                     <div class="row form-row"><label class="col-sm-2 col-form-label" for="username">用户名</label>
                         <div class="col-sm-10"><input id="username" class="form-control" name="username"
-                                value="<?= esc(old('username')) ?>" pattern="[a-z0-9]{3,12}" required autofocus></div>
+                                value="<?= esc(old('username')) ?>"
+                                <?= $mode === 'register' ? 'pattern="[a-z0-9]{3,12}"' : 'maxlength="30"' ?> required
+                                autofocus></div>
                     </div>
                     <?php if ($mode === 'register'):?>
                         <div class="row form-row"><label class="col-sm-2 col-form-label" for="email">邮箱</label>

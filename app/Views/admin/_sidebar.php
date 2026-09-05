@@ -1,4 +1,7 @@
 <aside class="col-lg-4 sidebar admin-sidebar" aria-label="后台管理菜单">
+    <nav class="list-group admin-nav-group"><a class="list-group-item" href="/admin/comment">回复管理</a><a
+            class="list-group-item" href="/admin/topic?status=deleted">主题回收站</a><a class="list-group-item"
+            href="/admin/reports">举报处理</a><a class="list-group-item" href="/admin/logs">操作记录</a></nav>
     <nav class="list-group admin-nav-group">
         <a href="/admin/topic" class="list-group-item list-group-item-action admin-group-title">主题</a>
         <a href="/admin/topic"

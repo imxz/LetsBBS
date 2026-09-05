@@ -16,7 +16,8 @@
                     </div>
                     <div>
                         <h1 class="h4 mb-1"><?= esc($member['username']) ?></h1>
-                        <div class="meta">第 <?= (int) $member['id'] ?> 号会员 · 加入于 <?= esc($member['created_at']) ?></div>
+                        <div class="meta">第 <?= (int) $member['id'] ?> 号会员 · 加入于
+                            <?= esc(forum_date($member['created_at'])) ?></div>
                     </div>
                 </div>
                 <?php if (!empty($member['signature'])):?>
@@ -48,6 +49,7 @@
                     href="/member/<?= esc($member['username'], 'url') ?>/comments/1">全部回复</a>
                 <?php if (auth()->loggedIn() && auth()->id() == $member['id']):?>
                     · <a href="/settings">个人设置</a>
+                    · <a href="/my/content">我的内容与审核结果</a> · <a href="/my/subscriptions">收藏与关注</a>
                 <?php endif?>
             </div>
         </div>
@@ -61,7 +63,7 @@
 
             <?php foreach ($topics as $t):?>
                 <div class="topic-row"><a href="/topic/<?= $t['id'] ?>"><?= esc($t['title']) ?></a>
-                    <div class="meta"><?= esc($t['created_at']) ?></div>
+                    <?= view('member/_topic_meta', ['item' => $t]) ?>
                 </div>
             <?php endforeach?>
         </div>
@@ -76,10 +78,10 @@
             <?php foreach ($comments as $comment):?>
                 <article class="topic-row">
                     <div class="mb-2">回复了 <?= esc($comment['topic_author']) ?> 创建的主题：<a
-                            href="/topic/<?= $comment['topic_id'] ?>"><?= esc($comment['title']) ?></a>
+                            href="<?= esc(reply_url((int) $comment['topic_id'], (int) $comment['id'])) ?>"><?= esc($comment['title']) ?></a>
                     </div>
                     <blockquote class="mb-1 post-body"><?= $comment['body'] ?></blockquote>
-                    <div class="meta"><?= esc($comment['created_at']) ?></div>
+                    <div class="meta"><?= esc(forum_date($comment['created_at'])) ?></div>
                 </article>
             <?php endforeach?>
         </div>

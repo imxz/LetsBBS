@@ -35,6 +35,9 @@ final class Auth extends BaseController
 
     public function register()
     {
+        if (service('siteSettings')->get('registration_enabled', '1') !== '1') {
+            return redirect()->to('/login')->with('error', '网站暂时关闭新账号注册。');
+        }
         if (auth()->loggedIn()) {
             return redirect()->to('/');
         }
@@ -103,6 +106,12 @@ final class Auth extends BaseController
                 !new CaptchaService()->consume((string) $this->request->getPost('captcha'))
             ) {
                 return redirect()->back()->withInput()->with('error', '验证码错误或请求过于频繁。');
+            }
+            $candidate = auth()
+                ->getProvider()
+                ->findByCredentials(['username' => strtolower(trim((string) $this->request->getPost('username')))]);
+            if ($candidate && (!$candidate->active || $candidate->isBanned())) {
+                return redirect()->back()->withInput()->with('error', '用户名、密码错误或账号不可用。');
             }
             $result = auth()->attempt([
                 'username' => strtolower(trim((string) $this->request->getPost('username'))),

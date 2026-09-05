@@ -39,6 +39,9 @@ final class Topic extends BaseController
                 throw new \RuntimeException(implode('；', $this->validator->getErrors()));
             }
             $admin = auth()->user()->inGroup('admin');
+            if (!service('throttler')->check('topic-post-' . auth()->id(), 10, 60)) {
+                throw new \RuntimeException('发帖过于频繁，请稍后重试。');
+            }
             $id = new TopicService()->create(
                 (int) auth()->id(),
                 (int) $this->request->getPost('node_id'),
@@ -46,8 +49,9 @@ final class Topic extends BaseController
                 (string) $this->request->getPost('body'),
                 $admin,
             );
+            session()->setFlashdata('clearDraft', 'topic-new');
             if (!$admin && service('siteSettings')->get('topic_requires_approval', '0') === '1') {
-                return redirect()->to('/')->with('success', '主题已提交，审核通过后将公开显示。');
+                return redirect()->to('/my/content')->with('success', '主题已提交，审核通过后将公开显示。');
             }
             return redirect()
                 ->to('/topic/' . $id)
@@ -62,14 +66,23 @@ final class Topic extends BaseController
         try {
             $this->assertCanPost();
             $admin = auth()->user()->inGroup('admin');
-            new TopicService()->comment((int) auth()->id(), $id, (string) $this->request->getPost('body'), $admin);
+            if (!service('throttler')->check('comment-post-' . auth()->id(), 20, 60)) {
+                throw new \RuntimeException('回复过于频繁，请稍后重试。');
+            }
+            $commentId = new TopicService()->comment(
+                (int) auth()->id(),
+                $id,
+                (string) $this->request->getPost('body'),
+                $admin,
+            );
+            session()->setFlashdata('clearDraft', 'reply-' . $id);
             if (!$admin && service('siteSettings')->get('comment_requires_approval', '0') === '1') {
                 return redirect()
                     ->to('/topic/' . $id)
                     ->with('success', '回复已提交，审核通过后将公开显示。');
             }
             return redirect()
-                ->to('/topic/' . $id)
+                ->to('/topic/' . $id . '?reply=' . $commentId . '#comment-' . $commentId)
                 ->with('success', '回复已发布。');
         } catch (\Throwable $e) {
             return redirect()->back()->withInput()->with('error', $e->getMessage());

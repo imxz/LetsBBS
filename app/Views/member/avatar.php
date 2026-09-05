@@ -19,8 +19,9 @@
                     <div class="row form-row"><label class="col-sm-2 col-form-label" for="avatar">新头像</label>
                         <div class="col-sm-10"><input id="avatar" class="form-control" type="file" name="avatar"
                                 accept="image/jpeg,image/png,image/gif,image/webp" required>
-                            <div class="alert alert-info avatar-help"><strong>注意</strong> 支持 JPG、PNG、GIF、WebP，最大 2
-                                MiB，尺寸不超过 512×512，推荐使用正方形图片。</div>
+                            <div class="alert alert-info avatar-help"><strong>注意</strong> 支持 JPG、PNG、GIF、WebP，上传上限 5
+                                MiB、最长边 6000 像素，保存时会居中裁剪为 256×256 头像。</div><img id="avatar-preview"
+                                class="profile-avatar-preview d-none" alt="新头像裁剪预览">
                         </div>
                     </div>
                     <div class="row">

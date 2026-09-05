@@ -10,7 +10,7 @@
                 <h1 class="panel-title">创建新主题</h1>
             </div>
             <div class="panel-body">
-                <form method="post" action="/topic">
+                <form method="post" action="/topic" data-draft-key="topic-new">
                     <?= csrf_field() ?>
                     <div class="mb-3"><label class="form-label" for="title">标题</label><input id="title"
                             class="form-control" name="title" maxlength="160" placeholder="标题"

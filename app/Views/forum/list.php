@@ -1,8 +1,6 @@
 <?php helper('forum'); ?>
 <?php $homeTopNodes = array_values(array_filter($nodes, static fn(array $node): bool => (bool) ($node['show_on_home'] ?? false)));
-if (!$homeTopNodes) {
-    $homeTopNodes = array_slice($nodes, 0, 6);
-} ?>
+$homeNodeLimit = max(0, min(100, (int) service('siteSettings')->get('home_node_limit', '10'))); ?>
 
 <?= $this->extend('layouts/main') ?>
 
@@ -13,6 +11,10 @@ if (!$homeTopNodes) {
             <div class="panel-heading d-flex justify-content-between gap-3">
                 <div>
                     <h1 class="panel-title"><?= esc($title) ?></h1>
+                    <?php if (!$home && !$currentNode && $search === ''): ?>
+                        <span class="meta">全站主题</span>
+                    <?php endif ?>
+
                     <?php if (!$home && $currentNode):?>
                         <div class="meta mt-1"><?= esc($currentNode['description']) ?></div>
                     <?php endif?>
@@ -29,7 +31,7 @@ if (!$homeTopNodes) {
             </div>
             <?php if ($home):?>
                 <nav class="topic-filters d-flex flex-wrap" aria-label="主题筛选">
-                    <?php foreach (array_slice($homeTopNodes, 0, 10) as $node):?>
+                    <?php foreach (array_slice($homeTopNodes, 0, $homeNodeLimit) as $node):?>
                         <?php $nodeSelected = $filter === 'all' && (int) $nodeId === (int) $node['id']; ?>
                         <a class="btn btn-sm btn-outline-secondary topic-filter <?= $nodeSelected ? 'topshow' : '' ?>"
                             href="/topic/show/<?= esc($node['slug'], 'url') ?>" role="button"
@@ -91,13 +93,23 @@ if (!$homeTopNodes) {
 
             <?php if (!$topics):?>
 
-                <?php if ($search === '' || $searchType !== 'members'):?>
-                    <p class="p-4 text-secondary mb-0"><?= $search !== '' ? '没有找到相关主题或回复。' : '暂无主题。' ?></p>
-                <?php elseif (!$memberMatches):?>
-                    <p class="p-4 text-secondary mb-0">没有找到相关成员。</p>
+                <?php if (!$memberMatches && !$replyMatches):?>
+                    <p class="p-4 text-secondary mb-0"><?= $search !== '' ? '没有找到相关内容或成员。' : '暂无主题。' ?></p>
                 <?php endif?>
 
             <?php endif?>
+
+            <?php foreach ($replyMatches as $reply): ?>
+                <article class="topic-row"><a class="topic-title"
+                        href="<?= esc(reply_url((int) $reply['topic_id'], (int) $reply['id'])) ?>"><?= esc($reply['title']) ?></a>
+                    <div class="meta">匹配回复 · <a
+                            href="/member/<?= esc($reply['username'], 'url') ?>"><?= esc($reply['username']) ?></a> ·
+                        <?= forum_date($reply['created_at']) ?></div>
+                    <p class="mt-2 mb-0">
+                        <?= esc(mb_substr(html_entity_decode(strip_tags($reply['body']), ENT_QUOTES | ENT_HTML5, 'UTF-8'), 0, 240)) ?>
+                    </p>
+                </article>
+            <?php endforeach ?>
 
             <?php foreach ($topics as $topic):?>
                 <article class="topic-row d-flex gap-3 align-items-start">
@@ -112,6 +124,13 @@ if (!$homeTopNodes) {
                         <?php endif?>
                     </a>
                     <div class="flex-grow-1 min-w-0">
+                        <?php if ($topic['is_pinned']): ?>
+                            <span class="badge text-bg-secondary">置顶</span>
+                        <?php endif ?>
+
+                        <?php if ($topic['is_locked']): ?>
+                            <span class="badge text-bg-light">锁定</span>
+                        <?php endif ?>
                         <a class="topic-title" href="/topic/<?= $topic['id'] ?>"><?= esc($topic['title']) ?></a>
                         <div class="meta mt-1">
                             <a href="/node/<?= esc($topic['node_slug'], 'url') ?>"><?= esc($topic['node_name']) ?></a> ·
@@ -126,7 +145,7 @@ if (!$homeTopNodes) {
                         </div>
                     </div>
                     <a class="reply-count flex-shrink-0"
-                        href="/topic/<?= $topic['id'] ?><?= $topic['comment_count'] ? '#reply-' . (int) $topic['comment_count'] : '' ?>"
+                        href="/topic/<?= $topic['id'] ?><?= $topic['comment_count'] ? '?page=' . (int) ceil($topic['comment_count'] / 30) . '#reply-' . (int) $topic['comment_count'] : '' ?>"
                         aria-label="<?= (int) $topic['comment_count'] ?> 条回复"><?= (int) $topic['comment_count'] ?></a>
                 </article>
             <?php endforeach?>
@@ -150,7 +169,13 @@ if (!$homeTopNodes) {
                     <a href="/node">浏览所有节点</a>
                 </div>
                 <div class="panel-body node-directory">
-                    <?php $featuredNodes = array_values(array_filter($nodes, static fn(array $node): bool => (bool) ($node['featured'] ?? true))); ?>
+                    <?php $featuredNodes = array_values(array_filter($nodes, static fn(array $node): bool => (bool) ($node['featured'] ?? true)));
+            $parentIds = array_filter(array_column($featuredNodes, 'parent_id'));
+            foreach ($nodes as $n) {
+                if (in_array($n['id'], $parentIds) && !in_array($n['id'], array_column($featuredNodes, 'id'))) {
+                    $featuredNodes[] = $n;
+                }
+            } ?>
                     <?= view('forum/_node_directory', ['directoryNodes' => $featuredNodes]) ?>
                 </div>
             </section>
@@ -198,7 +223,7 @@ if (!$homeTopNodes) {
 
             <section class="panel mb-3">
                 <div class="panel-heading">
-                    <h2 class="panel-title">热门主题</h2>
+                    <h2 class="panel-title">热门主题 <small class="meta">近 90 天发布</small></h2>
                 </div>
                 <?php if (!$hotTopics):?>
                     <p class="p-3 text-secondary mb-0">暂无热门主题。</p>

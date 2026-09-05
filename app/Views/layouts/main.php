@@ -1,4 +1,5 @@
-<?php $siteName = service('siteSettings')->get('site_name', 'LetsBBS');
+<?php helper('forum');
+$siteName = service('siteSettings')->get('site_name', 'LetsBBS');
 $siteSubtitle = service('siteSettings')->get('site_subtitle', '');
 $siteDescription = service('siteSettings')->get('site_description', '简洁的中文论坛');
 $siteKeywords = service('siteSettings')->get('site_keywords', 'LetsBBS,论坛,社区');
@@ -6,20 +7,33 @@ $searchQuery = (string) service('request')->getGet('q');
 $currentPath = trim(service('request')->getUri()->getPath(), '/');
 $documentTitle = isset($title) ? (string) $title : $siteName;
 if ($currentPath === '' && $siteSubtitle !== '') {
-    $documentTitle .= ' - ' . $siteSubtitle;
+    $documentTitle = $siteName . ' - ' . $siteSubtitle;
 } elseif (isset($title)) {
     $documentTitle .= ' - ' . $siteName;
 }
 $stylesheetPath = FCPATH . 'static/css/app.css';
 $stylesheetVersion = is_file($stylesheetPath) ? (string) filemtime($stylesheetPath) : '1'; ?>
+<?php $pageDescription = !empty($metaDescription) ? $metaDescription : $siteDescription;
+$pageKeywords = !empty($metaKeywords) ? $metaKeywords : $siteKeywords;
+$canonical = site_url($canonicalPath ?? $currentPath);
+$noIndex = ($noIndex ?? false) || preg_match('#^(admin|my|settings|notification|search|login|reg|register)(/|$)#', $currentPath); ?>
 <!doctype html>
 <html lang="zh-CN">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="description" content="<?= esc($siteDescription) ?>">
-    <meta name="keywords" content="<?= esc($siteKeywords) ?>">
+    <meta name="description" content="<?= esc($pageDescription) ?>">
+    <meta name="keywords" content="<?= esc($pageKeywords) ?>">
+    <link rel="canonical" href="<?= esc($canonical) ?>">
+    <meta property="og:title" content="<?= esc($documentTitle) ?>">
+    <meta property="og:description" content="<?= esc($pageDescription) ?>">
+    <meta property="og:url" content="<?= esc($canonical) ?>">
+    <meta property="og:type" content="<?= isset($topic) ? 'article' : 'website' ?>">
+    <meta name="twitter:card" content="summary">
+    <?php if ($noIndex): ?>
+        <meta name="robots" content="noindex,follow">
+    <?php endif ?>
     <title><?= esc($documentTitle) ?></title>
     <link rel="icon" href="/static/img/favicon.png">
     <link rel="stylesheet" href="/static/vendor/bootstrap/css/bootstrap.min.css">
@@ -50,20 +64,31 @@ $stylesheetVersion = is_file($stylesheetPath) ? (string) filemtime($stylesheetPa
                 </form>
                 <div class="navbar-nav ms-lg-auto align-items-lg-center">
                     <?php if (auth()->loggedIn()): ?>
-                        <a class="nav-link"
-                            href="/member/<?= esc(auth()->user()->username, 'url') ?>"><?= esc(auth()->user()->username) ?></a>
-                        <?php if (auth()->user()->inGroup('admin')):?>
-                            <a class="nav-link <?= str_starts_with($currentPath, 'admin') ? 'active' : '' ?>"
-                                href="/admin">后台</a>
-                        <?php endif?>
                         <a class="nav-link <?= str_starts_with($currentPath, 'notification') ? 'active' : '' ?>"
                             href="/notification">通知</a>
-                        <a class="nav-link <?= str_starts_with($currentPath, 'settings') ? 'active' : '' ?>"
-                            href="/settings">设置</a>
-                        <form class="d-flex" method="post" action="/logout">
-                            <?= csrf_field() ?>
-                            <button class="btn nav-link nav-logout border-0" type="submit">登出</button>
-                        </form>
+                        <div class="nav-item dropdown"><button class="btn nav-link dropdown-toggle border-0"
+                                type="button" data-bs-toggle="dropdown" aria-expanded="false"
+                                aria-label="账号菜单"><?= esc(auth()->user()->username) ?></button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item"
+                                        href="/member/<?= esc(auth()->user()->username, 'url') ?>">个人主页</a></li>
+                                <li><a class="dropdown-item" href="/my/content">我的内容</a></li>
+                                <li><a class="dropdown-item" href="/my/subscriptions">收藏与关注</a></li>
+                                <li><a class="dropdown-item" href="/settings">设置</a></li>
+                                <?php if (auth()->user()->inGroup('admin')): ?>
+                                    <li><a class="dropdown-item" href="/admin">后台管理</a></li>
+                                <?php endif ?>
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
+                                <li>
+                                    <form method="post" action="/logout">
+                                        <?= csrf_field() ?>
+                                        <button class="dropdown-item" type="submit">登出</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
                     <?php else:?>
                         <a class="nav-link" href="/register">注册</a><a class="nav-link" href="/login">登录</a>
                     <?php endif?>
@@ -83,13 +108,20 @@ $stylesheetVersion = is_file($stylesheetPath) ? (string) filemtime($stylesheetPa
         <?php if (auth()->loggedIn() && session('magicLogin')):?>
             <div class="alert alert-warning">你正在使用一次性邮箱链接登录。请尽快<a href="/settings/password">设置新密码</a>。</div>
         <?php endif?>
+
+        <?php if (auth()->loggedIn() && str_ends_with((string) auth()->user()->email, '@local.invalid')): ?>
+            <div class="alert alert-info">请在<a href="/settings/profile">个人资料</a>中补充可用邮箱，以便今后恢复账号。</div>
+        <?php endif ?>
         <?= $this->renderSection('content') ?>
     </main>
     <footer class="site-footer">
         <div class="container">
-            <p>Copyright © 2015 <a href="/"><?= esc($siteName) ?></a>. All rights reserved.</p>
-            <p>Powered By <a href="http://letsbbs.com" rel="nofollow noopener">Let'sBBS</a> v0.2.0 build-150408. Page
-                rendered in {elapsed_time} seconds.</p>
+            <p>Copyright © <?= gmdate('Y') ?> <a href="/"><?= esc($siteName) ?></a>.</p>
+            <p>Powered by LetsBBS <?= esc(service('siteSettings')->get('site_version', '1.0')) ?> ·
+                时间：<?= esc(service('siteSettings')->get('site_timezone', 'Asia/Shanghai')) ?></p>
+            <?php if ($footerText = service('siteSettings')->get('footer_text')): ?>
+                <p><?= nl2br(esc($footerText)) ?></p>
+            <?php endif ?>
         </div>
     </footer>
     <script src="/static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
@@ -97,9 +129,10 @@ $stylesheetVersion = is_file($stylesheetPath) ? (string) filemtime($stylesheetPa
         <?= csp_script_nonce() ?>>document.querySelector('.site-navbar-search .form-control')?.addEventListener('keydown',function(event){if(event.key==='Enter'){event.preventDefault();this.form.submit();}});</script>
     <?php if (!empty($editor)):?>
         <script src="/static/vendor/tinymce/tinymce.min.js"></script>
-        <script
-            <?= csp_script_nonce() ?>>const csrfName=<?= json_encode(csrf_token()) ?>,csrfHash=<?= json_encode(csrf_hash()) ?>;tinymce.init({selector:'textarea.js-editor',license_key:'gpl',menubar:false,branding:false,promotion:false,height:360,plugins:'image link lists preview',toolbar:'undo redo | blocks fontsize | bold italic underline strikethrough forecolor | blockquote bullist numlist hr | alignleft aligncenter alignright | link unlink image | removeformat preview',block_formats:'正文=p; 标题 2=h2; 标题 3=h3; 标题 4=h4',automatic_uploads:true,paste_data_images:false,images_file_types:'jpeg,jpg,png,gif,webp',extended_valid_elements:'',invalid_elements:'script,iframe,object,embed,video,audio,source,svg',relative_urls:false,remove_script_host:true,images_upload_handler:(blobInfo,progress)=>new Promise((resolve,reject)=>{const data=new FormData();data.append('file',blobInfo.blob(),blobInfo.filename());data.append(csrfName,csrfHash);fetch('/media/images',{method:'POST',credentials:'same-origin',body:data}).then(async r=>{const json=await r.json().catch(()=>({}));if(!r.ok||!json.location)throw new Error(json.error||('上传失败：'+r.status));resolve(json.location)}).catch(e=>reject(e.message));}),setup:function(ed){ed.on('BeforeSetContent',function(e){if(/<img[^>]+src=["\'](?:data:|https?:)/i.test(e.content)){e.preventDefault();alert('请上传本地图片，不能粘贴 Base64 或远程图片。');}});}});</script>
     <?php endif?>
+    <script
+        <?= csp_script_nonce() ?>>window.forumConfig = <?= json_encode(['csrfName' => csrf_token(), 'csrfHash' => csrf_hash(), 'userId' => auth()->id(), 'clearDraft' => session('clearDraft')], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;</script>
+    <script src="/static/js/forum.js?v=<?= esc($stylesheetVersion, 'url') ?>"></script>
 </body>
 
 </html>
