@@ -12,15 +12,21 @@ final class RoutePolicyTest extends CIUnitTestCase
         $this->assertStringContainsString("'Media::image', ['filter' => 'session']", $routes);
         $this->assertStringContainsString("get('node', 'Forum::nodes')", $routes);
         $this->assertStringContainsString("get('search', 'Forum::search/1')", $routes);
+        $this->assertStringContainsString("get('latest', 'Forum::latest/1')", $routes);
+        $this->assertStringContainsString("get('node/(:segment)', 'Forum::node/$1/1')", $routes);
         $this->assertStringContainsString("get('topic/show/(:segment)', 'Forum::show/$1')", $routes);
         $this->assertStringContainsString("'settings/profile', 'Member::settings', ['filter' => 'session']", $routes);
         $this->assertStringContainsString("'settings/avatar', 'Member::avatar', ['filter' => 'session']", $routes);
         $this->assertStringContainsString("'reg', 'Auth::register'", $routes);
+        $this->assertStringContainsString("'login/magic-link'", $routes);
+        $this->assertStringContainsString("'verify-magic-link'", $routes);
         $this->assertStringContainsString("get('topic', 'Admin::topics/1')", $routes);
         $this->assertStringContainsString("'settings/verify', 'Admin::verifySettings'", $routes);
         $this->assertStringNotContainsString('setAutoRoute(true)', $routes);
         $this->assertStringNotContainsString('MethodNotAllowed', $routes);
         $this->assertStringNotContainsString("get('topic/(:num)/delete'", $routes);
+        $this->assertStringContainsString("get('topic/follow/(:num)', 'Legacy::topicAction/$1')", $routes);
+        $this->assertStringContainsString("get('topic/unfollow/(:num)', 'Legacy::topicAction/$1')", $routes);
     }
 
     public function testMemberNavigationRetainsLegacyUserActions(): void
@@ -29,7 +35,8 @@ final class RoutePolicyTest extends CIUnitTestCase
         $this->assertStringContainsString('href="/settings"', $layout);
         $this->assertStringContainsString('>设置</a>', $layout);
         $this->assertStringContainsString('>登出</button>', $layout);
-        $this->assertStringNotContainsString('href="/recent">最新</a>', $layout);
+        $this->assertStringContainsString('href="/recent">最近活跃</a>', $layout);
+        $this->assertStringContainsString('href="/latest">最新发布</a>', $layout);
     }
 
     public function testNavbarKeepsLegacySearchStructure(): void
@@ -43,5 +50,15 @@ final class RoutePolicyTest extends CIUnitTestCase
         $this->assertStringContainsString("event.key==='Enter'", $layout);
         $this->assertStringContainsString('this.form.submit()', $layout);
         $this->assertStringContainsString("app.css?v=<?= esc(\$stylesheetVersion, 'url') ?>", $layout);
+    }
+
+    public function testRegistrationCollectsARealEmailAddress(): void
+    {
+        $view = file_get_contents(APPPATH . 'Views/auth/form.php');
+        $controller = file_get_contents(APPPATH . 'Controllers/Auth.php');
+
+        $this->assertStringContainsString('type="email"', $view);
+        $this->assertStringContainsString('FILTER_VALIDATE_EMAIL', $controller);
+        $this->assertStringNotContainsString("'@local.invalid'", $controller);
     }
 }

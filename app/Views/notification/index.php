@@ -25,6 +25,8 @@
                         的相关主题已不可用
                     <?php elseif ($n['kind'] === 'topic'):?>
                         发布了主题 <a href="/topic/<?= (int) $n['topic_id'] ?>"><?= esc($n['title']) ?></a>
+                    <?php elseif ($n['kind'] === 'mention'):?>
+                        在主题 <a href="/topic/<?= (int) $n['topic_id'] ?>"><?= esc($n['title']) ?></a> 中提到了你
                     <?php else:?>
                         回复了主题 <a href="/topic/<?= (int) $n['topic_id'] ?>"><?= esc($n['title']) ?></a>
                     <?php endif?>

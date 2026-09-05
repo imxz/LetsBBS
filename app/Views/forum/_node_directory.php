@@ -20,7 +20,7 @@ foreach ($directoryNodes as $node) {
             <div class="col-sm-10 node-links">
                 <?php foreach ($children[(int) $root['id']] as $child):?>
                     <a class="btn btn-outline-secondary"
-                        href="/node/<?= (int) $child['id'] ?>"><?= esc($child['name']) ?></a>
+                        href="/node/<?= esc($child['slug'], 'url') ?>"><?= esc($child['name']) ?></a>
                 <?php endforeach?>
             </div>
         </div>
@@ -35,7 +35,8 @@ foreach ($directoryNodes as $node) {
     <div class="row node-directory-row">
         <div class="offset-sm-2 col-sm-10 node-links">
             <?php foreach ($standalone as $node):?>
-                <a class="btn btn-outline-secondary" href="/node/<?= (int) $node['id'] ?>"><?= esc($node['name']) ?></a>
+                <a class="btn btn-outline-secondary"
+                    href="/node/<?= esc($node['slug'], 'url') ?>"><?= esc($node['name']) ?></a>
             <?php endforeach?>
         </div>
     </div>

@@ -17,14 +17,17 @@ final class ForumModel extends Model
     public function listing(
         int $page,
         ?int $nodeId,
-        bool $recent,
+        bool $latest,
         string $filter = 'all',
         ?int $viewerId = null,
         string $search = '',
+        string $searchType = 'all',
     ): array {
         $b = $this->db
             ->table('topics t')
-            ->select('t.*,n.name node_name,u.username,p.avatar,reply_user.username last_reply_username')
+            ->select(
+                't.*,n.name node_name,n.slug node_slug,u.username,p.avatar,reply_user.username last_reply_username',
+            )
             ->join('nodes n', 'n.id=t.node_id')
             ->join('users u', 'u.id=t.user_id')
             ->join('user_profiles p', 'p.user_id=t.user_id', 'left')
@@ -40,7 +43,29 @@ final class ForumModel extends Model
             $b->where('t.node_id', $nodeId);
         }
         if ($search !== '') {
-            $b->groupStart()->like('t.title', $search)->orLike('t.body', $search)->groupEnd();
+            if ($searchType === 'comments') {
+                $b->join(
+                    'comments search_comment',
+                    "search_comment.topic_id=t.id AND search_comment.status='published'",
+                    'inner',
+                    false,
+                )->like('search_comment.body', $search);
+            } elseif ($searchType === 'all') {
+                $b->join(
+                    'comments search_comment',
+                    "search_comment.topic_id=t.id AND search_comment.status='published'",
+                    'left',
+                    false,
+                )
+                    ->groupStart()
+                    ->like('t.title', $search)
+                    ->orLike('t.body', $search)
+                    ->orLike('search_comment.body', $search)
+                    ->groupEnd();
+            } else {
+                $b->groupStart()->like('t.title', $search)->orLike('t.body', $search)->groupEnd();
+            }
+            $b->groupBy('t.id');
         }
         if ($viewerId !== null) {
             if ($filter === 'nodes') {
@@ -56,7 +81,7 @@ final class ForumModel extends Model
         }
 
         return $b
-            ->orderBy($recent ? 't.created_at' : 't.last_activity_at', 'DESC')
+            ->orderBy($latest ? 't.created_at' : 't.last_activity_at', 'DESC')
             ->orderBy('t.id', 'DESC')
             ->limit(self::PAGE_SIZE + 1, ($page - 1) * self::PAGE_SIZE)
             ->get()
@@ -75,14 +100,54 @@ final class ForumModel extends Model
             ->getResultArray();
     }
 
-    public function hotTopics(int $limit = 10): array
+    public function nodeById(int $id): ?array
+    {
+        return $this->db
+            ->table('nodes')
+            ->where(['id' => $id, 'is_active' => 1])
+            ->get()
+            ->getRowArray();
+    }
+
+    public function nodeBySlug(string $slug): ?array
+    {
+        return $this->db
+            ->table('nodes')
+            ->where(['slug' => $slug, 'is_active' => 1])
+            ->get()
+            ->getRowArray();
+    }
+
+    public function postableNodes(?int $includeNodeId = null): array
+    {
+        $builder = $this->db
+            ->table('nodes n')
+            ->select('n.*,p.name parent_name')
+            ->join('nodes p', 'p.id=n.parent_id', 'left')
+            ->where('n.is_active', 1);
+        $postable = 'NOT EXISTS (SELECT 1 FROM nodes child WHERE child.parent_id=n.id AND child.is_active=1)';
+        $builder->where(
+            $includeNodeId === null ? $postable : '(' . $postable . ' OR n.id=' . (int) $includeNodeId . ')',
+            null,
+            false,
+        );
+
+        return $builder
+            ->orderBy('n.parent_id IS NOT NULL', 'ASC', false)
+            ->orderBy('n.sort_order')
+            ->orderBy('n.id')
+            ->get()
+            ->getResultArray();
+    }
+
+    public function hotTopics(int $limit = 15): array
     {
         return $this->db
             ->table('topics')
-            ->select('id,title,comment_count')
+            ->select('id,title,comment_count,view_count')
             ->where('status', 'published')
             ->where('last_activity_at >=', gmdate('Y-m-d H:i:s', time() - 86400 * 90))
-            ->orderBy('comment_count', 'DESC')
+            ->orderBy('(view_count + comment_count * 5)', 'DESC', false)
             ->orderBy('last_activity_at', 'DESC')
             ->limit($limit)
             ->get()
@@ -95,7 +160,11 @@ final class ForumModel extends Model
         return [
             'users' => $this->db->table('users')->where('active', 1)->countAllResults(),
             'topics' => $this->db->table('topics')->where('status', 'published')->countAllResults(),
-            'comments' => $this->db->table('comments')->where('status', 'published')->countAllResults(),
+            'comments' => $this->db
+                ->table('comments c')
+                ->join('topics t', 't.id=c.topic_id')
+                ->where(['c.status' => 'published', 't.status' => 'published'])
+                ->countAllResults(),
         ];
     }
 
@@ -126,15 +195,25 @@ final class ForumModel extends Model
 
     public function topic(int $id): ?array
     {
-        return $this->db
+        return $this->topicVisibleTo($id, false);
+    }
+
+    public function topicVisibleTo(int $id, bool $moderator): ?array
+    {
+        $builder = $this->db
             ->table('topics t')
-            ->select('t.*,n.name node_name,u.username,p.avatar')
+            ->select('t.*,n.name node_name,n.slug node_slug,u.username,p.avatar')
             ->join('nodes n', 'n.id=t.node_id')
             ->join('users u', 'u.id=t.user_id')
             ->join('user_profiles p', 'p.user_id=t.user_id', 'left')
-            ->where(['t.id' => $id, 't.status' => 'published'])
-            ->get()
-            ->getRowArray();
+            ->where('t.id', $id);
+        if ($moderator) {
+            $builder->where('t.status !=', 'deleted');
+        } else {
+            $builder->where('t.status', 'published');
+        }
+
+        return $builder->get()->getRowArray();
     }
 
     public function incrementViewCount(int $id): void
@@ -151,6 +230,25 @@ final class ForumModel extends Model
             ->join('user_profiles p', 'p.user_id=c.user_id', 'left')
             ->where(['c.topic_id' => $topicId, 'c.status' => 'published'])
             ->orderBy('c.id')
+            ->get()
+            ->getResultArray();
+    }
+
+    public function searchMembers(string $query, int $limit = 20): array
+    {
+        return $this->db
+            ->table('users u')
+            ->select('u.username,p.avatar,p.bio,p.signature,p.location')
+            ->join('user_profiles p', 'p.user_id=u.id', 'left')
+            ->where('u.active', 1)
+            ->groupStart()
+            ->like('u.username', $query)
+            ->orLike('p.bio', $query)
+            ->orLike('p.signature', $query)
+            ->orLike('p.location', $query)
+            ->groupEnd()
+            ->orderBy('u.id', 'DESC')
+            ->limit($limit)
             ->get()
             ->getResultArray();
     }

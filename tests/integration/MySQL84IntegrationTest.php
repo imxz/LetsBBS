@@ -237,12 +237,93 @@ final class MySQL84IntegrationTest extends CIUnitTestCase
     {
         $settings = new \App\Services\SiteSettings();
         $original = $settings->all();
+        foreach (['site_subtitle', 'site_keywords', 'comment_requires_approval'] as $key) {
+            $this->assertArrayHasKey($key, $original);
+        }
         try {
             $settings->save(['site_name' => 'Test BBS', 'site_description' => 'Integration test']);
             $reloaded = new \App\Services\SiteSettings();
             $this->assertSame('Test BBS', $reloaded->get('site_name'));
             $this->assertSame('Integration test', $reloaded->get('site_description'));
         } finally {
+            $settings->save($original);
+        }
+    }
+
+    public function testPublishedCommentMentionsOverrideDuplicateFollowerNotification(): void
+    {
+        $db = db_connect();
+        $settings = service('siteSettings');
+        $original = $settings->all();
+        $now = gmdate('Y-m-d H:i:s');
+        $ids = [];
+        $topicId = null;
+        try {
+            foreach (['mentionauthor', 'mentionreply', 'mentiontarget'] as $prefix) {
+                $username = $prefix . bin2hex(random_bytes(3));
+                $db->table('users')->insert([
+                    'username' => $username,
+                    'active' => 1,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+                $ids[] = (int) $db->insertID();
+                $db->table('user_profiles')->insert([
+                    'user_id' => end($ids),
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+            }
+            $targetName = (string) $db->table('users')->select('username')->where('id', $ids[2])->get()->getRow()
+                ->username;
+            $nodeId = (int) $db->table('nodes')->select('id')->where('is_active', 1)->get()->getRow()->id;
+            $settings->save(['topic_requires_approval' => '0', 'comment_requires_approval' => '0']);
+            $topicId = new \App\Services\TopicService()->create(
+                $ids[0],
+                $nodeId,
+                'mention ' . bin2hex(random_bytes(4)),
+                '<p>mention test</p>',
+            );
+            $db->table('topic_follows')->insert([
+                'user_id' => $ids[2],
+                'topic_id' => $topicId,
+                'created_at' => $now,
+            ]);
+            $db->query('UPDATE topics SET follower_count=follower_count+1 WHERE id=?', [$topicId]);
+
+            $commentId = new \App\Services\TopicService()->comment(
+                $ids[1],
+                $topicId,
+                '<p>@' . $targetName . ' @' . $targetName . ' hello</p>',
+            );
+            $this->assertSame(
+                1,
+                $db
+                    ->table('notifications')
+                    ->where(['user_id' => $ids[2], 'comment_id' => $commentId, 'kind' => 'mention'])
+                    ->countAllResults(),
+            );
+            $this->assertSame(
+                0,
+                $db
+                    ->table('notifications')
+                    ->where(['user_id' => $ids[2], 'comment_id' => $commentId, 'kind' => 'comment'])
+                    ->countAllResults(),
+            );
+            $this->assertSame(
+                1,
+                $db
+                    ->table('notifications')
+                    ->where(['user_id' => $ids[0], 'comment_id' => $commentId, 'kind' => 'comment'])
+                    ->countAllResults(),
+            );
+        } finally {
+            if ($topicId !== null) {
+                $db->table('topics')->where('id', $topicId)->delete();
+            }
+            foreach ($ids as $id) {
+                $db->table('users')->where('id', $id)->delete();
+            }
             $settings->save($original);
         }
     }

@@ -14,6 +14,14 @@
                         <div class="col-sm-10"><input id="username" class="form-control" name="username"
                                 value="<?= esc(old('username')) ?>" pattern="[a-z0-9]{3,12}" required autofocus></div>
                     </div>
+                    <?php if ($mode === 'register'):?>
+                        <div class="row form-row"><label class="col-sm-2 col-form-label" for="email">邮箱</label>
+                            <div class="col-sm-10"><input id="email" class="form-control" type="email" name="email"
+                                    maxlength="254" autocomplete="email" value="<?= esc(old('email')) ?>" required>
+                                <div class="form-text">用于识别账号及后续账号恢复，请填写可用邮箱。</div>
+                            </div>
+                        </div>
+                    <?php endif?>
                     <div class="row form-row"><label class="col-sm-2 col-form-label" for="password">密码</label>
                         <div class="col-sm-10"><input id="password" class="form-control" type="password" name="password"
                                 minlength="12" required></div>
@@ -31,6 +39,9 @@
                                 type="submit"><?= $mode === 'register' ? '创建账号' : '登录' ?></button></div>
                     </div>
                 </form>
+                <?php if ($mode === 'login' && config('Auth')->allowMagicLinkLogins):?>
+                    <p class="mt-3 mb-0 text-center"><a href="/login/magic-link">忘记密码？发送一次性登录链接</a></p>
+                <?php endif?>
             </div>
         </div>
     </section>

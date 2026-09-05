@@ -23,7 +23,7 @@
                         <?php foreach ($nodes as $node):?>
                             <tr>
                                 <td><?= (int) $node['id'] ?></td>
-                                <td><a href="/node/<?= (int) $node['id'] ?>"
+                                <td><a href="/node/<?= esc($node['slug'], 'url') ?>"
                                         target="_blank"><?= !empty($node['parent_id']) ? '　' : '' ?><?= esc($node['name']) ?></a>
                                     <div class="meta"><?= esc($node['slug']) ?></div>
                                 </td>

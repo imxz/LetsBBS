@@ -69,6 +69,11 @@ final class InitialSeeder extends Seeder
                     'setting_value' => json_encode('0', JSON_UNESCAPED_UNICODE),
                     'updated_at' => $now,
                 ],
+                [
+                    'setting_key' => 'comment_requires_approval',
+                    'setting_value' => json_encode('0', JSON_UNESCAPED_UNICODE),
+                    'updated_at' => $now,
+                ],
             ]);
     }
 }

@@ -13,7 +13,7 @@ final class TopicService
         $this->sanitizer ??= new HtmlSanitizer();
     }
 
-    public function create(int $userId, int $nodeId, string $title, string $html): int
+    public function create(int $userId, int $nodeId, string $title, string $html, bool $bypassApproval = false): int
     {
         $body = $this->sanitizer->clean($html);
         if ($body === '') {
@@ -23,7 +23,10 @@ final class TopicService
         if (mb_strlen($title) < 2 || mb_strlen($title) > 160) {
             throw new RuntimeException('标题须为 2–160 个字符。');
         }
-        $status = service('siteSettings')->get('topic_requires_approval', '0') === '1' ? 'hidden' : 'published';
+        $status =
+            !$bypassApproval && service('siteSettings')->get('topic_requires_approval', '0') === '1'
+                ? 'hidden'
+                : 'published';
         $now = gmdate('Y-m-d H:i:s');
         return $this->transaction(function () use ($userId, $nodeId, $title, $body, $status, $now): int {
             $node = $this->db
@@ -75,14 +78,18 @@ final class TopicService
         });
     }
 
-    public function comment(int $userId, int $topicId, string $html): int
+    public function comment(int $userId, int $topicId, string $html, bool $bypassApproval = false): int
     {
         $body = $this->sanitizer->clean($html);
         if ($body === '') {
             throw new RuntimeException('回复不能为空。');
         }
+        $status =
+            !$bypassApproval && service('siteSettings')->get('comment_requires_approval', '0') === '1'
+                ? 'hidden'
+                : 'published';
         $now = gmdate('Y-m-d H:i:s');
-        return $this->transaction(function () use ($userId, $topicId, $body, $now): int {
+        return $this->transaction(function () use ($userId, $topicId, $body, $status, $now): int {
             $topic = $this->db
                 ->query('SELECT user_id FROM topics WHERE id=? AND status=? FOR UPDATE', [$topicId, 'published'])
                 ->getRowArray();
@@ -93,34 +100,124 @@ final class TopicService
                 'topic_id' => $topicId,
                 'user_id' => $userId,
                 'body' => $body,
-                'status' => 'published',
+                'status' => $status,
                 'created_at' => $now,
                 'updated_at' => $now,
             ]);
             $id = (int) $this->db->insertID();
-            $this->db->query(
-                'UPDATE topics SET comment_count=comment_count+1,last_activity_at=?,updated_at=? WHERE id=?',
-                [$now, $now, $topicId],
-            );
-            $this->db->query('UPDATE user_profiles SET comment_count=comment_count+1,updated_at=? WHERE user_id=?', [
-                $now,
-                $userId,
-            ]);
-            $recipients = $this->db
-                ->query('SELECT user_id FROM topic_follows WHERE topic_id=? AND user_id<>?', [$topicId, $userId])
-                ->getResultArray();
-            foreach ($recipients as $r) {
-                $this->db->table('notifications')->insert([
-                    'user_id' => $r['user_id'],
-                    'actor_id' => $userId,
-                    'topic_id' => $topicId,
-                    'comment_id' => $id,
-                    'kind' => 'comment',
-                    'created_at' => $now,
-                ]);
+            if ($status === 'published') {
+                $this->db->query(
+                    'UPDATE topics SET comment_count=comment_count+1,last_activity_at=?,updated_at=? WHERE id=?',
+                    [$now, $now, $topicId],
+                );
+                $this->db->query(
+                    'UPDATE user_profiles SET comment_count=comment_count+1,updated_at=? WHERE user_id=?',
+                    [$now, $userId],
+                );
+                $this->notifyCommentRecipients($userId, $topicId, $id, $body, $now);
             }
             return $id;
         });
+    }
+
+    public function notifyPublishedComment(int $commentId): void
+    {
+        $comment = $this->db
+            ->table('comments c')
+            ->select('c.id,c.topic_id,c.user_id,c.body')
+            ->join('topics t', 't.id=c.topic_id')
+            ->where(['c.id' => $commentId, 'c.status' => 'published', 't.status' => 'published'])
+            ->get()
+            ->getRowArray();
+        if (!$comment) {
+            return;
+        }
+
+        $this->notifyCommentRecipients(
+            (int) $comment['user_id'],
+            (int) $comment['topic_id'],
+            (int) $comment['id'],
+            (string) $comment['body'],
+            gmdate('Y-m-d H:i:s'),
+        );
+    }
+
+    private function notifyCommentRecipients(
+        int $userId,
+        int $topicId,
+        int $commentId,
+        string $body,
+        string $createdAt,
+    ): void {
+        $mentioned = [];
+        $usernames = $this->extractMentions($body);
+        if ($usernames !== []) {
+            $members = $this->db
+                ->table('users')
+                ->select('id,username')
+                ->where('active', 1)
+                ->whereIn('username', $usernames)
+                ->get()
+                ->getResultArray();
+            foreach ($members as $member) {
+                $recipientId = (int) $member['id'];
+                if ($recipientId === $userId) {
+                    continue;
+                }
+                $mentioned[$recipientId] = true;
+                $this->insertNotificationOnce([
+                    'user_id' => $recipientId,
+                    'actor_id' => $userId,
+                    'topic_id' => $topicId,
+                    'comment_id' => $commentId,
+                    'kind' => 'mention',
+                    'created_at' => $createdAt,
+                ]);
+            }
+        }
+
+        $followers = $this->db
+            ->query('SELECT user_id FROM topic_follows WHERE topic_id=? UNION SELECT user_id FROM topics WHERE id=?', [
+                $topicId,
+                $topicId,
+            ])
+            ->getResultArray();
+        foreach ($followers as $follower) {
+            $recipientId = (int) $follower['user_id'];
+            if ($recipientId === $userId || isset($mentioned[$recipientId])) {
+                continue;
+            }
+            $this->insertNotificationOnce([
+                'user_id' => $recipientId,
+                'actor_id' => $userId,
+                'topic_id' => $topicId,
+                'comment_id' => $commentId,
+                'kind' => 'comment',
+                'created_at' => $createdAt,
+            ]);
+        }
+    }
+
+    /** @return list<string> */
+    private function extractMentions(string $html): array
+    {
+        $text = html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        preg_match_all('/(?<![a-z0-9_.-])@([a-z0-9_.-]{3,30})/iu', $text, $matches);
+        $usernames = array_map(static fn(string $username): string => strtolower($username), $matches[1] ?? []);
+
+        return array_values(array_unique($usernames));
+    }
+
+    /** @param array<string, int|string> $notification */
+    private function insertNotificationOnce(array $notification): void
+    {
+        $identity = array_intersect_key(
+            $notification,
+            array_flip(['user_id', 'actor_id', 'topic_id', 'comment_id', 'kind']),
+        );
+        if (!$this->db->table('notifications')->where($identity)->countAllResults()) {
+            $this->db->table('notifications')->insert($notification);
+        }
     }
 
     public function delete(int $actorId, int $topicId, bool $admin): void
@@ -132,12 +229,14 @@ final class TopicService
             if (!$topic || (!$admin && (int) $topic['user_id'] !== $actorId)) {
                 throw new RuntimeException('无权删除该主题。');
             }
-            if ($topic['status'] === 'published') {
+            if ($topic['status'] !== 'deleted') {
                 $now = gmdate('Y-m-d H:i:s');
                 $this->db
                     ->table('topics')
                     ->where('id', $topicId)
                     ->update(['status' => 'deleted', 'updated_at' => $now]);
+            }
+            if ($topic['status'] === 'published') {
                 $this->db->query('UPDATE nodes SET topic_count=GREATEST(topic_count-1,0) WHERE id=?', [
                     $topic['node_id'],
                 ]);

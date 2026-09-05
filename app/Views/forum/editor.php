@@ -19,7 +19,10 @@
                             class="form-select" name="node_id" required>
                             <option value="">请选择分类</option>
                             <?php foreach ($nodes as $n):?>
-                                <option value="<?= $n['id'] ?>"><?= esc($n['name']) ?></option>
+                                <option value="<?= $n['id'] ?>"
+                                    <?= (string) old('node_id') === (string) $n['id'] ? 'selected' : '' ?>>
+                                    <?= esc(($n['parent_name'] ? $n['parent_name'] . ' / ' : '') . $n['name']) ?>
+                                </option>
                             <?php endforeach?>
                         </select></div>
                     <div class="mb-3"><label class="form-label visually-hidden" for="body">正文</label><textarea id="body"

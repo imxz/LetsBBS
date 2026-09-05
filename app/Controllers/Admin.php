@@ -122,7 +122,7 @@ final class Admin extends BaseController
             'title' => '编辑主题',
             'section' => 'topic',
             'topic' => $topic,
-            'nodes' => $db->table('nodes')->where('is_active', 1)->orderBy('sort_order')->get()->getResultArray(),
+            'nodes' => new \App\Models\ForumModel()->postableNodes((int) $topic['node_id']),
             'editor' => true,
         ]);
     }
@@ -239,6 +239,11 @@ final class Admin extends BaseController
                 "UPDATE topics t SET last_activity_at=GREATEST(t.created_at,COALESCE((SELECT MAX(c.created_at) FROM comments c WHERE c.topic_id=t.id AND c.status='published'),t.created_at)),updated_at=? WHERE t.id=?",
                 [gmdate('Y-m-d H:i:s'), $comment['topic_id']],
             );
+            if ($will) {
+                new \App\Services\TopicService($db)->notifyPublishedComment($id);
+            } else {
+                $db->table('notifications')->where('comment_id', $id)->delete();
+            }
             $db->transCommit();
         } catch (\Throwable $e) {
             $db->transRollback();
@@ -266,8 +271,10 @@ final class Admin extends BaseController
             ->table('users u')
             ->select('u.id,u.username,u.active,u.created_at,p.is_muted,i.secret email')
             ->join('user_profiles p', 'p.user_id=u.id', 'left')
-            ->join('auth_identities i', "i.user_id=u.id AND i.type='email_password'", 'left', false)
-            ->where('p.is_muted', $muted ? 1 : 0);
+            ->join('auth_identities i', "i.user_id=u.id AND i.type='email_password'", 'left', false);
+        if ($muted) {
+            $builder->where('p.is_muted', 1);
+        }
         if ($query !== '') {
             $builder->like('u.username', $query);
         }
@@ -411,8 +418,16 @@ final class Admin extends BaseController
             $name = trim((string) $this->request->getPost('name'));
             $slug = strtolower(trim((string) $this->request->getPost('slug')));
             $parentId = (int) $this->request->getPost('parent_id') ?: null;
-            if ($name === '' || !preg_match('/\A[a-z0-9-]{2,80}\z/', $slug)) {
-                throw new \RuntimeException('节点名称不能为空，slug 只能包含小写字母、数字和连字符。');
+            $reservedSlugs = ['all', 'nodes', 'topics', 'users', 'follow', 'unfollow'];
+            if (
+                $name === '' ||
+                !preg_match('/\A[a-z0-9-]{2,80}\z/', $slug) ||
+                ctype_digit($slug) ||
+                in_array($slug, $reservedSlugs, true)
+            ) {
+                throw new \RuntimeException(
+                    '节点名称不能为空，slug 只能包含小写字母、数字和连字符，且不能使用纯数字或保留字。',
+                );
             }
             if ($id !== null && $parentId === $id) {
                 throw new \RuntimeException('节点不能作为自己的父节点。');
@@ -495,6 +510,7 @@ final class Admin extends BaseController
         if ($this->request->getMethod() === 'POST') {
             $settings->save([
                 'topic_requires_approval' => $this->request->getPost('topic_requires_approval') === '1' ? '1' : '0',
+                'comment_requires_approval' => $this->request->getPost('comment_requires_approval') === '1' ? '1' : '0',
             ]);
 
             return redirect()->back()->with('success', '审核设置已保存。');

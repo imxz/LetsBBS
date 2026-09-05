@@ -29,12 +29,33 @@ final class Forum extends BaseController
 
     public function recent(int $page = 1)
     {
-        return $this->listing($page, null, true);
+        return $this->listing($page, null, false, false, '', null, 'recent');
     }
 
-    public function node(int $id, int $page = 1)
+    public function latest(int $page = 1)
     {
-        return $this->listing($page, $id, false);
+        return $this->listing($page, null, true, false, '', null, 'latest');
+    }
+
+    public function legacyNode(int $id, int $page = 1)
+    {
+        $node = new ForumModel()->nodeById($id);
+        if (!$node) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+        $path = '/node/' . rawurlencode((string) $node['slug']) . ($page > 1 ? '/' . $page : '');
+
+        return redirect()->to($path)->setStatusCode(301);
+    }
+
+    public function node(string $slug, int $page = 1)
+    {
+        $node = new ForumModel()->nodeBySlug(strtolower($slug));
+        if (!$node) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
+        return $this->listing($page, (int) $node['id'], false);
     }
 
     public function nodes()
@@ -51,7 +72,12 @@ final class Forum extends BaseController
             return redirect()->to('/');
         }
 
-        return $this->listing($page, null, true, false, $query);
+        $type = strtolower(trim((string) $this->request->getGet('type')));
+        if (!in_array($type, ['all', 'topics', 'comments', 'members'], true)) {
+            $type = 'all';
+        }
+
+        return $this->listing($page, null, false, false, $query, null, 'search', $type);
     }
 
     private function homeListing(string $selection, bool $persist)
@@ -64,10 +90,15 @@ final class Forum extends BaseController
             $filter = $selection;
         } elseif (ctype_digit($selection) && (int) $selection > 0) {
             $nodeId = (int) $selection;
-        } elseif ($persist) {
-            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
         } else {
-            $selection = 'all';
+            $node = new ForumModel()->nodeBySlug($selection);
+            if ($node) {
+                $nodeId = (int) $node['id'];
+            } elseif ($persist) {
+                throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+            } else {
+                $selection = 'all';
+            }
         }
 
         if ($filter !== 'all' && !auth()->loggedIn()) {
@@ -84,10 +115,12 @@ final class Forum extends BaseController
     private function listing(
         int $page,
         ?int $nodeId,
-        bool $recent,
+        bool $latest,
         bool $home = false,
         string $search = '',
         ?string $homeFilter = null,
+        string $feed = '',
+        string $searchType = 'all',
     ) {
         $page = max(1, $page);
         $model = new ForumModel();
@@ -118,11 +151,20 @@ final class Forum extends BaseController
         if ($nodeId && auth()->loggedIn() && !$home) {
             $nodeFollowing = $model->follows('node_follows', ['user_id' => auth()->id(), 'node_id' => $nodeId]);
         }
-        $topics = $model->listing($page, $nodeId, $recent, $filter, $viewerId, $search);
+        $topics =
+            $searchType === 'members'
+                ? []
+                : $model->listing($page, $nodeId, $latest, $filter, $viewerId, $search, $searchType);
+        $memberMatches =
+            $search !== '' && in_array($searchType, ['all', 'members'], true) ? $model->searchMembers($search) : [];
         $hasNext = count($topics) > ForumModel::PAGE_SIZE;
         $settings = service('siteSettings');
         $siteName = $settings->get('site_name', 'LetsBBS');
-        $title = $recent ? '最新主题' : ($currentNode ? $currentNode['name'] : '主题');
+        $title = match ($feed) {
+            'recent' => '最近活跃',
+            'latest' => '最新发布',
+            default => $currentNode ? $currentNode['name'] : '主题',
+        };
         if ($home) {
             $title = $settings->get('home_welcome_message', '欢迎访问 ' . $siteName);
         } elseif ($search !== '') {
@@ -143,30 +185,47 @@ final class Forum extends BaseController
                 'home' => $home,
                 'filter' => $filter,
                 'search' => $search,
-                'previousUrl' => $page > 1 ? $this->pageUrl($page - 1, $nodeId, $search, $filter, $home) : null,
-                'nextUrl' => $hasNext ? $this->pageUrl($page + 1, $nodeId, $search, $filter, $home) : null,
+                'searchType' => $searchType,
+                'memberMatches' => $memberMatches,
+                'previousUrl' =>
+                    $page > 1
+                        ? $this->pageUrl($page - 1, $currentNode, $search, $searchType, $filter, $home, $feed)
+                        : null,
+                'nextUrl' => $hasNext
+                    ? $this->pageUrl($page + 1, $currentNode, $search, $searchType, $filter, $home, $feed)
+                    : null,
                 'hotTopics' => $home ? $model->hotTopics() : [],
             ] + $this->sidebarData(),
         );
     }
 
-    private function pageUrl(int $page, ?int $nodeId, string $search, string $filter, bool $home = false): string
-    {
+    private function pageUrl(
+        int $page,
+        ?array $node,
+        string $search,
+        string $searchType,
+        string $filter,
+        bool $home = false,
+        string $feed = '',
+    ): string {
         if ($home) {
-            $selection = $nodeId !== null ? (string) $nodeId : $filter;
+            $selection = $node !== null ? (string) $node['slug'] : $filter;
             $query = $page > 1 ? '?page=' . $page : '';
 
             return '/topic/show/' . rawurlencode($selection) . $query;
         }
 
-        if ($nodeId !== null) {
-            return '/node/' . $nodeId . '/' . $page;
+        if ($node !== null) {
+            return '/node/' . rawurlencode((string) $node['slug']) . '/' . $page;
         }
 
-        $path = $search !== '' ? '/search/' . $page : '/recent/' . $page;
+        $path = $search !== '' ? '/search/' . $page : '/' . ($feed === 'latest' ? 'latest' : 'recent') . '/' . $page;
         $query = [];
         if ($search !== '') {
             $query['q'] = $search;
+            if ($searchType !== 'all') {
+                $query['type'] = $searchType;
+            }
         }
         if ($filter !== 'all') {
             $query['filter'] = $filter;
@@ -178,10 +237,14 @@ final class Forum extends BaseController
     public function topic(int $id)
     {
         $model = new ForumModel();
-        $model->incrementViewCount($id);
-        $topic = $model->topic($id);
+        $moderator = auth()->loggedIn() && auth()->user()->inGroup('admin');
+        $topic = $model->topicVisibleTo($id, $moderator);
         if (!$topic) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+        if ($topic['status'] === 'published') {
+            $model->incrementViewCount($id);
+            ++$topic['view_count'];
         }
         $following = auth()->loggedIn()
             ? $model->follows('topic_follows', ['user_id' => auth()->id(), 'topic_id' => $id])
@@ -192,6 +255,7 @@ final class Forum extends BaseController
                 'topic' => $topic,
                 'comments' => $model->comments($id),
                 'following' => $following,
+                'preview' => $topic['status'] !== 'published',
                 'title' => $topic['title'],
             ] + $this->sidebarData(),
         );

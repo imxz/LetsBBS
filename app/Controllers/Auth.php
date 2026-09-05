@@ -46,17 +46,23 @@ final class Auth extends BaseController
                 return redirect()->back()->withInput()->with('error', '验证码错误或请求过于频繁。');
             }
             $username = strtolower(trim((string) $this->request->getPost('username')));
+            $email = strtolower(trim((string) $this->request->getPost('email')));
             $password = (string) $this->request->getPost('password');
-            if (!preg_match('/^[a-z0-9]{3,12}$/', $username) || strlen($password) < 12) {
+            if (
+                !preg_match('/^[a-z0-9]{3,12}$/', $username) ||
+                !filter_var($email, FILTER_VALIDATE_EMAIL) ||
+                mb_strlen($email) > 254 ||
+                strlen($password) < 12
+            ) {
                 return redirect()
                     ->back()
                     ->withInput()
-                    ->with('error', '用户名须为 3–12 位小写字母或数字，密码至少 12 位。');
+                    ->with('error', '用户名须为 3–12 位小写字母或数字，请填写有效邮箱，密码至少 12 位。');
             }
             $provider = auth()->getProvider();
             $user = new User([
                 'username' => $username,
-                'email' => $username . '@local.invalid',
+                'email' => $email,
                 'password' => $password,
                 'active' => 1,
             ]);

@@ -33,6 +33,8 @@
 
 安装器使用互斥锁和 `writable/install.state` 保存阶段。进程中断后可用同一令牌继续；首次安装会拒绝非空数据库。应用数据库账号不得为 root。
 
+注册会保存真实且唯一的邮箱。若要启用“忘记密码”一次性登录链接，请先在 `.env` 配置 `email.*` SMTP 参数、验证发信域名与最终 HTTPS 回调地址，再将 `auth.allowMagicLinkLogins` 设为 `true`；未配置邮件服务时应保持关闭。
+
 ## 运维
 
 - 存活检查：`GET /health/live`
@@ -43,7 +45,7 @@
 
 ## 安全设计
 
-Shield 管理会话认证及 `user`/`admin` 角色。注册用户名仅允许 3–12 位小写字母和数字，密码至少 12 位；登录与注册使用一次性会话验证码和 IP 限流。全站启用会话 CSRF、HttpOnly/SameSite/Secure Cookie、CSP 和安全响应头，登录后更新会话 ID。
+Shield 管理会话认证及 `user`/`admin` 角色。注册用户名仅允许 3–12 位小写字母和数字，要求有效邮箱，密码至少 12 位；登录与注册使用一次性会话验证码和 IP 限流。邮箱找回采用限时、一次性登录令牌，登录后可在短时恢复会话中重设密码。全站启用会话 CSRF、HttpOnly/SameSite/Secure Cookie、CSP 和安全响应头，登录后更新会话 ID。
 
 正文在入库前经 HTML Purifier 白名单清理。只允许 HTTP(S) 链接、本地 `/uploads/editor/` 图片和 `text-align`；远程图片、Base64、SVG、iframe、媒体、脚本及危险协议会被拒绝或移除。编辑器上传会验证真实 MIME、尺寸和 5 MiB 上限，解码后以随机名称重新编码。
 
@@ -80,7 +82,7 @@ php spark routes
 
 ## 公开路由
 
-主要页面包括 `/`、`/recent/{page}`、`/topic/{id}`、`/node/{id}/{page?}`、`/member/{username}`、`/notification/{page}`、`/register`、`/login` 和设置页面。登出、关注、删除、审核、禁言等状态变更只接受 POST；未声明的路径和请求方法由框架返回 404 或 405。
+主要页面包括 `/`、`/recent/{page}`、`/latest/{page}`、`/topic/{id}`、`/node/{slug}/{page?}`、`/member/{username}`、`/notification/{page}`、`/register`、`/login` 和设置页面。旧的数字节点地址会永久重定向到 slug 地址。登出、关注、删除、审核、禁言等状态变更只接受 POST；未声明的路径和请求方法由框架返回 404 或 405。
 
 ## License
 

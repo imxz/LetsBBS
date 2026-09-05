@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Models\ForumModel;
 use App\Services\TopicService;
 
 final class Topic extends BaseController
@@ -20,12 +21,7 @@ final class Topic extends BaseController
             'forum/editor',
             [
                 'title' => '创建新主题',
-                'nodes' => db_connect()
-                    ->table('nodes')
-                    ->where('is_active', 1)
-                    ->orderBy('sort_order')
-                    ->get()
-                    ->getResultArray(),
+                'nodes' => new ForumModel()->postableNodes(),
             ] + $this->sidebarData(),
         );
     }
@@ -42,13 +38,15 @@ final class Topic extends BaseController
             ) {
                 throw new \RuntimeException(implode('；', $this->validator->getErrors()));
             }
+            $admin = auth()->user()->inGroup('admin');
             $id = new TopicService()->create(
                 (int) auth()->id(),
                 (int) $this->request->getPost('node_id'),
                 (string) $this->request->getPost('title'),
                 (string) $this->request->getPost('body'),
+                $admin,
             );
-            if (service('siteSettings')->get('topic_requires_approval', '0') === '1') {
+            if (!$admin && service('siteSettings')->get('topic_requires_approval', '0') === '1') {
                 return redirect()->to('/')->with('success', '主题已提交，审核通过后将公开显示。');
             }
             return redirect()
@@ -63,7 +61,13 @@ final class Topic extends BaseController
     {
         try {
             $this->assertCanPost();
-            new TopicService()->comment((int) auth()->id(), $id, (string) $this->request->getPost('body'));
+            $admin = auth()->user()->inGroup('admin');
+            new TopicService()->comment((int) auth()->id(), $id, (string) $this->request->getPost('body'), $admin);
+            if (!$admin && service('siteSettings')->get('comment_requires_approval', '0') === '1') {
+                return redirect()
+                    ->to('/topic/' . $id)
+                    ->with('success', '回复已提交，审核通过后将公开显示。');
+            }
             return redirect()
                 ->to('/topic/' . $id)
                 ->with('success', '回复已发布。');

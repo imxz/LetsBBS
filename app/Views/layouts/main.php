@@ -1,8 +1,15 @@
 <?php $siteName = service('siteSettings')->get('site_name', 'LetsBBS');
+$siteSubtitle = service('siteSettings')->get('site_subtitle', '');
 $siteDescription = service('siteSettings')->get('site_description', '简洁的中文论坛');
 $siteKeywords = service('siteSettings')->get('site_keywords', 'LetsBBS,论坛,社区');
 $searchQuery = (string) service('request')->getGet('q');
 $currentPath = trim(service('request')->getUri()->getPath(), '/');
+$documentTitle = isset($title) ? (string) $title : $siteName;
+if ($currentPath === '' && $siteSubtitle !== '') {
+    $documentTitle .= ' - ' . $siteSubtitle;
+} elseif (isset($title)) {
+    $documentTitle .= ' - ' . $siteName;
+}
 $stylesheetPath = FCPATH . 'static/css/app.css';
 $stylesheetVersion = is_file($stylesheetPath) ? (string) filemtime($stylesheetPath) : '1'; ?>
 <!doctype html>
@@ -13,7 +20,7 @@ $stylesheetVersion = is_file($stylesheetPath) ? (string) filemtime($stylesheetPa
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="description" content="<?= esc($siteDescription) ?>">
     <meta name="keywords" content="<?= esc($siteKeywords) ?>">
-    <title><?= esc(isset($title) ? $title . ' - ' . $siteName : $siteName) ?></title>
+    <title><?= esc($documentTitle) ?></title>
     <link rel="icon" href="/static/img/favicon.png">
     <link rel="stylesheet" href="/static/vendor/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/static/css/app.css?v=<?= esc($stylesheetVersion, 'url') ?>">
@@ -31,6 +38,10 @@ $stylesheetVersion = is_file($stylesheetPath) ? (string) filemtime($stylesheetPa
                     <a class="nav-link <?= $currentPath === '' ? 'active' : '' ?>" href="/">首页</a>
                     <a class="nav-link <?= $currentPath === 'node' || str_starts_with($currentPath, 'node/') ? 'active' : '' ?>"
                         href="/node">节点</a>
+                    <a class="nav-link <?= str_starts_with($currentPath, 'recent') ? 'active' : '' ?>"
+                        href="/recent">最近活跃</a>
+                    <a class="nav-link <?= str_starts_with($currentPath, 'latest') ? 'active' : '' ?>"
+                        href="/latest">最新发布</a>
                     <a class="nav-link <?= $currentPath === 'topic/new' ? 'active' : '' ?>" href="/topic/new">发表</a>
                 </div>
                 <form class="site-navbar-search me-lg-auto" role="search" method="get" action="/search">
@@ -68,6 +79,10 @@ $stylesheetVersion = is_file($stylesheetPath) ? (string) filemtime($stylesheetPa
         <?php if (session('success')):?>
             <div class="alert alert-success"><?= esc(session('success')) ?></div>
         <?php endif?>
+
+        <?php if (auth()->loggedIn() && session('magicLogin')):?>
+            <div class="alert alert-warning">你正在使用一次性邮箱链接登录。请尽快<a href="/settings/password">设置新密码</a>。</div>
+        <?php endif?>
         <?= $this->renderSection('content') ?>
     </main>
     <footer class="site-footer">
@@ -83,7 +98,7 @@ $stylesheetVersion = is_file($stylesheetPath) ? (string) filemtime($stylesheetPa
     <?php if (!empty($editor)):?>
         <script src="/static/vendor/tinymce/tinymce.min.js"></script>
         <script
-            <?= csp_script_nonce() ?>>const csrfName=<?= json_encode(csrf_token()) ?>,csrfHash=<?= json_encode(csrf_hash()) ?>;tinymce.init({selector:'textarea.js-editor',license_key:'gpl',menubar:false,branding:false,promotion:false,height:360,plugins:'image link lists preview',toolbar:'blocks | bold italic underline strikethrough | blockquote bullist numlist | alignleft aligncenter alignright | link image | preview',block_formats:'正文=p; 标题 2=h2; 标题 3=h3; 标题 4=h4',automatic_uploads:true,paste_data_images:false,images_file_types:'jpeg,jpg,png,gif,webp',extended_valid_elements:'',invalid_elements:'script,iframe,object,embed,video,audio,source,svg',relative_urls:false,remove_script_host:true,images_upload_handler:(blobInfo,progress)=>new Promise((resolve,reject)=>{const data=new FormData();data.append('file',blobInfo.blob(),blobInfo.filename());data.append(csrfName,csrfHash);fetch('/media/images',{method:'POST',credentials:'same-origin',body:data}).then(async r=>{const json=await r.json().catch(()=>({}));if(!r.ok||!json.location)throw new Error(json.error||('上传失败：'+r.status));resolve(json.location)}).catch(e=>reject(e.message));}),setup:function(ed){ed.on('BeforeSetContent',function(e){if(/<img[^>]+src=["\'](?:data:|https?:)/i.test(e.content)){e.preventDefault();alert('请上传本地图片，不能粘贴 Base64 或远程图片。');}});}});</script>
+            <?= csp_script_nonce() ?>>const csrfName=<?= json_encode(csrf_token()) ?>,csrfHash=<?= json_encode(csrf_hash()) ?>;tinymce.init({selector:'textarea.js-editor',license_key:'gpl',menubar:false,branding:false,promotion:false,height:360,plugins:'image link lists preview',toolbar:'undo redo | blocks fontsize | bold italic underline strikethrough forecolor | blockquote bullist numlist hr | alignleft aligncenter alignright | link unlink image | removeformat preview',block_formats:'正文=p; 标题 2=h2; 标题 3=h3; 标题 4=h4',automatic_uploads:true,paste_data_images:false,images_file_types:'jpeg,jpg,png,gif,webp',extended_valid_elements:'',invalid_elements:'script,iframe,object,embed,video,audio,source,svg',relative_urls:false,remove_script_host:true,images_upload_handler:(blobInfo,progress)=>new Promise((resolve,reject)=>{const data=new FormData();data.append('file',blobInfo.blob(),blobInfo.filename());data.append(csrfName,csrfHash);fetch('/media/images',{method:'POST',credentials:'same-origin',body:data}).then(async r=>{const json=await r.json().catch(()=>({}));if(!r.ok||!json.location)throw new Error(json.error||('上传失败：'+r.status));resolve(json.location)}).catch(e=>reject(e.message));}),setup:function(ed){ed.on('BeforeSetContent',function(e){if(/<img[^>]+src=["\'](?:data:|https?:)/i.test(e.content)){e.preventDefault();alert('请上传本地图片，不能粘贴 Base64 或远程图片。');}});}});</script>
     <?php endif?>
 </body>
 

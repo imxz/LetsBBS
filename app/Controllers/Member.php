@@ -4,7 +4,7 @@ namespace App\Controllers;
 
 final class Member extends BaseController
 {
-    private const PAGE_SIZE = 20;
+    private const PAGE_SIZE = 15;
 
     private function member(string $username): array
     {
@@ -29,7 +29,7 @@ final class Member extends BaseController
             ->table('topics')
             ->where(['user_id' => $member['id'], 'status' => 'published'])
             ->orderBy('id', 'DESC')
-            ->limit(10)
+            ->limit(self::PAGE_SIZE)
             ->get()
             ->getResultArray();
         $comments = $db
@@ -39,7 +39,7 @@ final class Member extends BaseController
             ->join('users u', 'u.id=t.user_id')
             ->where(['c.user_id' => $member['id'], 'c.status' => 'published', 't.status' => 'published'])
             ->orderBy('c.id', 'DESC')
-            ->limit(10)
+            ->limit(self::PAGE_SIZE)
             ->get()
             ->getResultArray();
         $following = false;
@@ -194,12 +194,17 @@ final class Member extends BaseController
 
     public function password()
     {
+        $magicLogin = (bool) session('magicLogin');
         if ($this->request->getMethod() === 'POST') {
             $current = (string) $this->request->getPost('current_password');
             $next = (string) $this->request->getPost('password');
             $confirmation = (string) $this->request->getPost('password_confirmation');
-            $result = auth()->check(['username' => auth()->user()->username, 'password' => $current]);
-            if (!$result->isOK() || strlen($next) < 12 || !hash_equals($next, $confirmation)) {
+            $currentPasswordValid = $magicLogin
+                ? true
+                : auth()
+                    ->check(['username' => auth()->user()->username, 'password' => $current])
+                    ->isOK();
+            if (!$currentPasswordValid || strlen($next) < 12 || !hash_equals($next, $confirmation)) {
                 return redirect()->back()->with('error', '当前密码错误、新密码少于 12 位，或两次输入不一致。');
             }
             $user = auth()->user();
@@ -207,11 +212,12 @@ final class Member extends BaseController
             if (!auth()->getProvider()->save($user)) {
                 return redirect()->back()->with('error', implode('；', auth()->getProvider()->errors()));
             }
+            session()->removeTempdata('magicLogin');
             auth()->logout();
             session()->regenerate(true);
 
             return redirect()->to('/login')->with('success', '密码已修改，请重新登录。');
         }
-        return view('member/password', ['title' => '修改密码'] + $this->sidebarData());
+        return view('member/password', ['title' => '修改密码', 'magicLogin' => $magicLogin] + $this->sidebarData());
     }
 }

@@ -32,7 +32,7 @@ if (!$homeTopNodes) {
                     <?php foreach (array_slice($homeTopNodes, 0, 10) as $node):?>
                         <?php $nodeSelected = $filter === 'all' && (int) $nodeId === (int) $node['id']; ?>
                         <a class="btn btn-sm btn-outline-secondary topic-filter <?= $nodeSelected ? 'topshow' : '' ?>"
-                            href="/topic/show/<?= (int) $node['id'] ?>" role="button"
+                            href="/topic/show/<?= esc($node['slug'], 'url') ?>" role="button"
                             <?= $nodeSelected ? 'aria-current="page"' : '' ?>><?= esc($node['name']) ?></a>
                     <?php endforeach?>
                     <?php $allSelected = $filter === 'all' && $nodeId === null; ?>
@@ -52,8 +52,51 @@ if (!$homeTopNodes) {
                 </nav>
             <?php endif?>
 
+            <?php if ($search !== ''):?>
+                <nav class="topic-filters d-flex flex-wrap" aria-label="搜索类型">
+                    <?php foreach (['all' => '全部', 'topics' => '主题', 'comments' => '回复', 'members' => '成员'] as $type => $label):?>
+                        <a class="btn btn-sm btn-outline-secondary topic-filter <?= $searchType === $type ? 'topshow' : '' ?>"
+                            href="/search?q=<?= urlencode($search) ?>&amp;type=<?= $type ?>"
+                            <?= $searchType === $type ? 'aria-current="page"' : '' ?>><?= $label ?></a>
+                    <?php endforeach?>
+                </nav>
+                <?php if (in_array($searchType, ['all', 'members'], true)):?>
+                    <section class="border-bottom" aria-labelledby="member-search-heading">
+                        <h2 id="member-search-heading" class="visually-hidden">匹配成员</h2>
+                        <?php foreach ($memberMatches as $member):?>
+                            <article class="topic-row d-flex gap-3 align-items-start">
+                                <a class="avatar flex-shrink-0" href="/member/<?= esc($member['username'], 'url') ?>">
+                                    <?php if ($member['avatar']):?>
+                                        <img class="avatar" src="<?= esc($member['avatar']) ?>"
+                                            alt="<?= esc($member['username']) ?> 的头像">
+                                    <?php else:?>
+                                        <?= esc(strtoupper(substr($member['username'], 0, 1))) ?>
+
+                                    <?php endif?>
+                                </a>
+                                <div><a class="topic-title"
+                                        href="/member/<?= esc($member['username'], 'url') ?>"><?= esc($member['username']) ?></a>
+                                    <?php $memberSummary = $member['signature'] ?: ($member['bio'] ?: $member['location']); ?>
+
+                                    <?php if ($memberSummary):?>
+                                        <div class="meta mt-1"><?= esc($memberSummary) ?></div>
+                                    <?php endif?>
+                                </div>
+                            </article>
+                        <?php endforeach?>
+                    </section>
+                <?php endif?>
+
+            <?php endif?>
+
             <?php if (!$topics):?>
-                <p class="p-4 text-secondary mb-0"><?= $search !== '' ? '没有找到相关主题。' : '暂无主题。' ?></p>
+
+                <?php if ($search === '' || $searchType !== 'members'):?>
+                    <p class="p-4 text-secondary mb-0"><?= $search !== '' ? '没有找到相关主题或回复。' : '暂无主题。' ?></p>
+                <?php elseif (!$memberMatches):?>
+                    <p class="p-4 text-secondary mb-0">没有找到相关成员。</p>
+                <?php endif?>
+
             <?php endif?>
 
             <?php foreach ($topics as $topic):?>
@@ -71,7 +114,7 @@ if (!$homeTopNodes) {
                     <div class="flex-grow-1 min-w-0">
                         <a class="topic-title" href="/topic/<?= $topic['id'] ?>"><?= esc($topic['title']) ?></a>
                         <div class="meta mt-1">
-                            <a href="/node/<?= $topic['node_id'] ?>"><?= esc($topic['node_name']) ?></a> ·
+                            <a href="/node/<?= esc($topic['node_slug'], 'url') ?>"><?= esc($topic['node_name']) ?></a> ·
                             <a href="/member/<?= esc($topic['username'], 'url') ?>"><?= esc($topic['username']) ?></a> ·
                             <?= esc(relative_time($topic['last_activity_at'])) ?> ·
                             <?php if ($topic['last_reply_username']):?>

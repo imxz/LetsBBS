@@ -8,10 +8,16 @@
             <div class="panel-body">
                 <form method="post" class="legacy-form-horizontal">
                     <?= csrf_field() ?>
-                    <div class="row form-row"><label class="col-sm-2 col-form-label" for="current_password">当前密码</label>
-                        <div class="col-sm-10"><input id="current_password" class="form-control" type="password"
-                                name="current_password" required></div>
-                    </div>
+
+                    <?php if (!$magicLogin):?>
+                        <div class="row form-row"><label class="col-sm-2 col-form-label"
+                                for="current_password">当前密码</label>
+                            <div class="col-sm-10"><input id="current_password" class="form-control" type="password"
+                                    name="current_password" required></div>
+                        </div>
+                    <?php else:?>
+                        <div class="alert alert-info">你已通过一次性邮箱链接登录，请直接设置新密码。</div>
+                    <?php endif?>
                     <div class="row form-row"><label class="col-sm-2 col-form-label" for="password">新密码</label>
                         <div class="col-sm-10"><input id="password" class="form-control" type="password" name="password"
                                 minlength="12" required></div>

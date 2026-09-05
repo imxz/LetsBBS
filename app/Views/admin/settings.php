@@ -56,6 +56,20 @@
                                 <div class="form-text">启用后，普通用户的新主题会进入“待审主题”，管理员通过后才公开显示。</div>
                             </div>
                         </div>
+                        <div class="row form-row"><label class="col-sm-3 col-form-label"
+                                for="comment_requires_approval">回复审核</label>
+                            <div class="col-sm-9"><select class="form-select" id="comment_requires_approval"
+                                    name="comment_requires_approval">
+                                    <option value="1"
+                                        <?= ($settings['comment_requires_approval'] ?? '0') === '1' ? 'selected' : '' ?>>
+                                        新回复需要审核</option>
+                                    <option value="0"
+                                        <?= ($settings['comment_requires_approval'] ?? '0') === '0' ? 'selected' : '' ?>>
+                                        新回复不需要审核</option>
+                                </select>
+                                <div class="form-text">启用后，普通用户的新回复在管理员通过前不会计数、通知或公开显示。</div>
+                            </div>
+                        </div>
                         <div class="row">
                             <div class="offset-sm-3 col-sm-9"><button class="btn btn-primary">提交</button></div>
                         </div>
