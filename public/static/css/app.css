@@ -32,7 +32,21 @@ a:focus {
 
 @media (min-width: 992px) {
     .container {
-        max-width: 970px;
+        max-width: 1200px;
+    }
+
+    .site-main > .row:has(> .sidebar) {
+        --bs-gutter-x: 24px;
+    }
+
+    .site-main > .row:has(> .sidebar) > .col-lg-8 {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    .site-main > .row > .sidebar {
+        /* Include the column padding so the sidebar panels stay 300px wide. */
+        flex: 0 0 calc(300px + var(--bs-gutter-x));
     }
 }
 
