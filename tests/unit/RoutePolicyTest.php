@@ -35,8 +35,6 @@ final class RoutePolicyTest extends CIUnitTestCase
         $this->assertStringContainsString('href="/settings"', $layout);
         $this->assertStringContainsString('>设置</a>', $layout);
         $this->assertStringContainsString('>登出</button>', $layout);
-        $this->assertStringContainsString('href="/recent">最近活跃</a>', $layout);
-        $this->assertStringContainsString('href="/latest">最新发布</a>', $layout);
     }
 
     public function testNavbarKeepsLegacySearchStructure(): void

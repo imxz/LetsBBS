@@ -52,10 +52,6 @@ $noIndex = ($noIndex ?? false) || preg_match('#^(admin|my|settings|notification|
                     <a class="nav-link <?= $currentPath === '' ? 'active' : '' ?>" href="/">首页</a>
                     <a class="nav-link <?= $currentPath === 'node' || str_starts_with($currentPath, 'node/') ? 'active' : '' ?>"
                         href="/node">节点</a>
-                    <a class="nav-link <?= str_starts_with($currentPath, 'recent') ? 'active' : '' ?>"
-                        href="/recent">最近活跃</a>
-                    <a class="nav-link <?= str_starts_with($currentPath, 'latest') ? 'active' : '' ?>"
-                        href="/latest">最新发布</a>
                     <a class="nav-link <?= $currentPath === 'topic/new' ? 'active' : '' ?>" href="/topic/new">发表</a>
                 </div>
                 <form class="site-navbar-search me-lg-auto" role="search" method="get" action="/search">
@@ -116,9 +112,10 @@ $noIndex = ($noIndex ?? false) || preg_match('#^(admin|my|settings|notification|
     </main>
     <footer class="site-footer">
         <div class="container">
-            <p>Copyright © <?= gmdate('Y') ?> <a href="/"><?= esc($siteName) ?></a>.</p>
-            <p>Powered by LetsBBS <?= esc(service('siteSettings')->get('site_version', '1.0')) ?> ·
-                时间：<?= esc(service('siteSettings')->get('site_timezone', 'Asia/Shanghai')) ?></p>
+            <p>Copyright © <?= gmdate('Y') ?> <a href="/"><?= esc($siteName) ?></a>. All rights reserved.</p>
+            <p>Powered By <a href="http://letsbbs.com">Let'sBBS</a>
+                v<?= esc(service('siteSettings')->get('site_version', '1.0')) ?>. Page rendered in {elapsed_time}
+                seconds.</p>
             <?php if ($footerText = service('siteSettings')->get('footer_text')): ?>
                 <p><?= nl2br(esc($footerText)) ?></p>
             <?php endif ?>
