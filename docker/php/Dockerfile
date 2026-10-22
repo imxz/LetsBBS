@@ -1,4 +1,4 @@
-FROM php:8.4.24-fpm-alpine AS production
+FROM php:8.4.27-fpm-alpine AS production
 
 RUN apk add --no-cache fcgi icu-libs libjpeg-turbo libpng libwebp freetype oniguruma libzip \
     && apk add --no-cache --virtual .build-deps $PHPIZE_DEPS icu-dev libjpeg-turbo-dev libpng-dev libwebp-dev freetype-dev oniguruma-dev libzip-dev \
